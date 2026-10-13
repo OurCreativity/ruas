@@ -1,0 +1,56 @@
+import { execSync } from "node:child_process";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+
+const CLI_FIXTURE = join(process.cwd(), ".tmp", "cli-fixture");
+const CLI_PATH = join(process.cwd(), "packages", "cli", "dist", "index.js");
+
+describe("@ruas/cli End-to-End Tests", () => {
+  beforeAll(() => {
+    rmSync(CLI_FIXTURE, { recursive: true, force: true });
+    mkdirSync(CLI_FIXTURE, { recursive: true });
+
+    writeFileSync(
+      join(CLI_FIXTURE, "pembayaran.ts"),
+      `
+export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
+  return jumlah > 0;
+}
+`,
+    );
+  });
+
+  afterAll(() => {
+    rmSync(CLI_FIXTURE, { recursive: true, force: true });
+  });
+
+  it("prints version flag correctly", () => {
+    const output = execSync(`node ${CLI_PATH} --version`).toString().trim();
+    expect(output).toBe("0.1.0");
+  }, 30_000);
+
+  it("indexes fixture directory with --json", () => {
+    const raw = execSync(`node ${CLI_PATH} index ${CLI_FIXTURE} --json`).toString();
+    // Parse last JSON block (filtering node experimental warnings)
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+
+    expect(data.totalFiles).toBe(1);
+    expect(data.indexedFiles).toBe(1);
+    expect(data.isCold).toBe(true);
+    expect(data.nodesCount).toBeGreaterThanOrEqual(2);
+  }, 30_000);
+
+  it("queries status with --json", () => {
+    const raw = execSync(`node ${CLI_PATH} status ${CLI_FIXTURE} --json`).toString();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+
+    expect(data.indexed).toBe(true);
+    expect(data.totalFiles).toBe(1);
+    expect(data.totalNodes).toBeGreaterThanOrEqual(2);
+  }, 30_000);
+});

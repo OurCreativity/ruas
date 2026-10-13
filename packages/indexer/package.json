@@ -1,0 +1,25 @@
+{
+  "name": "@ruas/indexer",
+  "version": "0.1.0",
+  "description": "File walker, ignore matcher, Merkle dirty-set detection, and indexing orchestrator for Ruas",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "@ruas/parser": "workspace:*",
+    "@ruas/store": "workspace:*",
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.3"
+  }
+}

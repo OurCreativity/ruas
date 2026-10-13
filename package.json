@@ -1,0 +1,23 @@
+{
+  "name": "ruas-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "ASEAN-first Code Intelligence Engine for AI Agents & Humans",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.4",
+    "fast-check": "^3.23.2",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

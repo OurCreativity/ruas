@@ -1,0 +1,23 @@
+{
+  "name": "@ruas/cli",
+  "version": "0.1.0",
+  "description": "Command-line interface for Ruas code intelligence engine",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "ruas": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc -b && chmod +x dist/index.js",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "@ruas/indexer": "workspace:*",
+    "@ruas/parser": "workspace:*",
+    "@ruas/store": "workspace:*",
+    "commander": "^13.1.0",
+    "picocolors": "^1.1.1"
+  }
+}
