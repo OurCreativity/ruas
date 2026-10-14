@@ -1,0 +1,28 @@
+{
+  "name": "@ruas/eval",
+  "version": "0.1.0",
+  "description": "Rigorous evaluation benchmark and ablation harness for Ruas",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist",
+    "bench": "node dist/run-eval.js"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "@ruas/indexer": "workspace:*",
+    "@ruas/nlp": "workspace:*",
+    "@ruas/parser": "workspace:*",
+    "@ruas/rank": "workspace:*",
+    "@ruas/resolver": "workspace:*",
+    "@ruas/store": "workspace:*"
+  }
+}

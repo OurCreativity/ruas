@@ -16,6 +16,8 @@
     "@ruas/core": "workspace:*",
     "@ruas/indexer": "workspace:*",
     "@ruas/parser": "workspace:*",
+    "@ruas/rank": "workspace:*",
+    "@ruas/resolver": "workspace:*",
     "@ruas/store": "workspace:*",
     "commander": "^13.1.0",
     "picocolors": "^1.1.1"

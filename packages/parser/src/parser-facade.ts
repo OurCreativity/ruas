@@ -5,6 +5,7 @@ import {
   type ExtractorResult,
   TypeScriptExtractor,
 } from "./extractors/ts-extractor.js";
+import { PhpExtractor } from "./extractors/php-extractor.js";
 
 export class CodeParser {
   private parser: Parser | null = null;
@@ -40,9 +41,7 @@ export class CodeParser {
           return extractor.extract(tree, content);
         }
         case "php": {
-          // In Milestone 1, placeholder for PHP structure fallback:
-          // Returns the root file node; full PHP extractor is Milestone 2 deliverable
-          const extractor = new TypeScriptExtractor(filePath);
+          const extractor = new PhpExtractor(filePath);
           return extractor.extract(tree, content);
         }
       }

@@ -1,0 +1,23 @@
+{
+  "name": "@ruas/nlp",
+  "version": "0.1.0",
+  "description": "Multilingual tokenizer, Nazief-Adriani stemmer, language detector, and glossary expander for Ruas",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.2"
+  }
+}

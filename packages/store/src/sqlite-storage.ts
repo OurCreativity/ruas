@@ -330,6 +330,11 @@ export class SqliteStorage implements Storage {
     db.prepare("DELETE FROM unresolved_refs WHERE file_id = ?;").run(fileId);
   }
 
+  public async deleteUnresolvedRef(id: string): Promise<void> {
+    const db = this.getDatabase();
+    db.prepare("DELETE FROM unresolved_refs WHERE id = ?;").run(id);
+  }
+
   public async getUnresolvedRefsByName(name: string): Promise<readonly UnresolvedRefRecord[]> {
     const db = this.getDatabase();
     const rows = db
@@ -337,6 +342,22 @@ export class SqliteStorage implements Storage {
         "SELECT id, src_id, name, kind, file_id, line FROM unresolved_refs WHERE name = ?;",
       )
       .all(name) as readonly Record<string, unknown>[];
+
+    return rows.map((row) => ({
+      id: String(row["id"]),
+      srcId: String(row["src_id"]),
+      name: String(row["name"]),
+      kind: String(row["kind"]) as EdgeRecord["kind"],
+      fileId: String(row["file_id"]),
+      line: Number(row["line"]),
+    }));
+  }
+
+  public async getAllUnresolvedRefs(): Promise<readonly UnresolvedRefRecord[]> {
+    const db = this.getDatabase();
+    const rows = db
+      .prepare("SELECT id, src_id, name, kind, file_id, line FROM unresolved_refs;")
+      .all() as readonly Record<string, unknown>[];
 
     return rows.map((row) => ({
       id: String(row["id"]),

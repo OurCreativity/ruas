@@ -102,4 +102,47 @@ const validasiOngkir = (beratKg: number): boolean => {
     expect(callRef).toBeDefined();
     expect(callRef?.srcId).toBe(hitungNode?.id);
   });
+
+  it("extracts PHP classes, methods, and calls correctly", async () => {
+    const phpCode = `<?php
+namespace App\\Services;
+
+use App\\Repositories\\CustomerRepository;
+
+class DiskonService {
+    /**
+     * Hitung total diskon transaksi.
+     */
+    public function hitungDiskon($customer, $amount) {
+        $repo = new CustomerRepository();
+        $this->validasiDiskon($amount);
+        return $amount * 0.1;
+    }
+
+    private function validasiDiskon($amount) {
+        return $amount > 0;
+    }
+}
+`;
+
+    const result = await codeParser.parseFile("app/Services/DiskonService.php", phpCode, "php");
+
+    const names = result.nodes.map((n) => n.name);
+    expect(names).toContain("DiskonService.php");
+    expect(names).toContain("DiskonService");
+    expect(names).toContain("hitungDiskon");
+    expect(names).toContain("validasiDiskon");
+
+    const methodNode = result.nodes.find((n) => n.name === "hitungDiskon");
+    expect(methodNode?.qualifiedName).toBe("DiskonService::hitungDiskon");
+    expect(methodNode?.docComment).toContain("Hitung total diskon transaksi");
+
+    // Check imports ref
+    const useRepo = result.unresolvedRefs.find((r) => r.name === "CustomerRepository" && r.kind === "imports");
+    expect(useRepo).toBeDefined();
+
+    // Check call ref
+    const callValidasi = result.unresolvedRefs.find((r) => r.name === "validasiDiskon" && r.kind === "calls");
+    expect(callValidasi).toBeDefined();
+  });
 });

@@ -44,7 +44,9 @@ export interface Storage {
   // Unresolved references
   upsertUnresolvedRefs(refs: readonly UnresolvedRefRecord[]): Promise<void>;
   deleteUnresolvedRefsByFileId(fileId: string): Promise<void>;
+  deleteUnresolvedRef(id: string): Promise<void>;
   getUnresolvedRefsByName(name: string): Promise<readonly UnresolvedRefRecord[]>;
+  getAllUnresolvedRefs(): Promise<readonly UnresolvedRefRecord[]>;
 
   // Full-Text Search
   searchFts(query: string, limit?: number): Promise<readonly FtsSearchResult[]>;

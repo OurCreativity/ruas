@@ -1,0 +1,22 @@
+{
+  "name": "@ruas/resolver",
+  "version": "0.1.0",
+  "description": "Cross-file reference resolver with calibrated Bayesian Beta-Bernoulli confidence",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "@ruas/store": "workspace:*"
+  }
+}

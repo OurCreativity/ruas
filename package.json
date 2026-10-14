@@ -2,7 +2,7 @@
   "name": "ruas-monorepo",
   "version": "0.1.0",
   "private": true,
-  "description": "ASEAN-first Code Intelligence Engine for AI Agents & Humans",
+  "description": "Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval",
   "type": "module",
   "scripts": {
     "build": "pnpm -r run build",

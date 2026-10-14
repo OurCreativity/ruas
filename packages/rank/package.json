@@ -1,0 +1,23 @@
+{
+  "name": "@ruas/rank",
+  "version": "0.1.0",
+  "description": "Lexical FTS5, Trigram fuzzy matching, Personalized PageRank, and Reciprocal Rank Fusion engine for Ruas",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@ruas/core": "workspace:*",
+    "@ruas/nlp": "workspace:*",
+    "@ruas/store": "workspace:*"
+  }
+}
