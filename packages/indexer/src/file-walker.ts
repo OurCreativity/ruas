@@ -30,13 +30,27 @@ export class FileWalker {
 
     // Default system ignores
     this.ig.add([
+      "node_modules",
       "node_modules/**",
+      "**/node_modules/**",
+      ".git",
       ".git/**",
+      "**/.git/**",
+      "dist",
       "dist/**",
+      "**/dist/**",
+      "build",
       "build/**",
+      "**/build/**",
+      "vendor",
       "vendor/**",
+      "**/vendor/**",
+      ".ruas",
       ".ruas/**",
+      "**/.ruas/**",
+      "coverage",
       "coverage/**",
+      "**/coverage/**",
       "**/*.min.js",
       "**/*.bundle.js",
     ]);
@@ -69,12 +83,25 @@ export class FileWalker {
       "**/*.php",
     ];
 
+    const defaultGlobIgnores = [
+      "**/node_modules/**",
+      "**/.git/**",
+      "**/dist/**",
+      "**/build/**",
+      "**/vendor/**",
+      "**/.ruas/**",
+      "**/coverage/**",
+      "**/*.min.js",
+      "**/*.bundle.js",
+    ];
+
     const entries = await fg(patterns, {
       cwd: this.rootDir,
       absolute: true,
       dot: false,
       followSymbolicLinks: false,
       onlyFiles: true,
+      ignore: defaultGlobIgnores,
     });
 
     const results: WalkedFile[] = [];
