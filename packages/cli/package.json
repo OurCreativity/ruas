@@ -15,6 +15,7 @@
   "dependencies": {
     "@ruas/core": "workspace:*",
     "@ruas/indexer": "workspace:*",
+    "@ruas/mcp": "workspace:*",
     "@ruas/parser": "workspace:*",
     "@ruas/rank": "workspace:*",
     "@ruas/resolver": "workspace:*",

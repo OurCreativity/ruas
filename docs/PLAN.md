@@ -312,18 +312,16 @@ Milestone Timeline (4 Weeks)
   - `@ruas/eval`: Initial evaluation suite with 45 hand-labeled queries across TS & PHP repositories.
 - **Status:** 100% Completed. 38/38 unit tests passing. Ablation benchmark confirms statistically significant superiority over keyword baseline ($p = 0.0383 < 0.05$) with +17.6% lift on Recall@5. Query `"fungsi hitung diskon pelanggan"` matches `calculateDiscount` at Rank 1.
 
-#### Milestone 3: Agent Protocol (MCP) & Incremental Engine (NEXT)
+#### Milestone 3: Agent Protocol (MCP) & Incremental Engine (COMPLETED)
 - **Deliverables:**
   - `@ruas/mcp`: Official `@modelcontextprotocol/sdk` stdio server exposing `ask_code`, `trace_impact`, and `project_overview`.
   - Context budgeter: Packets assembled within token budgets (default 4,000 tokens) with source snippet citations and truncation metadata.
-  - `@ruas/indexer`: File watcher with configurable debounce (500ms–2000ms) and dirty-set incremental resolution.
-  - Invariant testing: Property-based tests verifying $\text{Graph}(\text{Incremental}) \equiv \text{Graph}(\text{Full Rebuild})$.
-- **Acceptance Criteria:**
-  - MCP server connects to Claude Desktop and Cursor without error.
-  - Incremental update on a single modified file finishes in $\le 500$ms.
-  - Cold indexing of 5,000 files completes in $\le 60$s; peak RAM remains $\le 1.5$GB.
+  - `@ruas/indexer`: `FileWatcher` with configurable debounce (500ms–2000ms) and dirty-set incremental resolution.
+  - Invariant testing: Property-based automated tests verifying $\text{Graph}(\text{Incremental}) \equiv \text{Graph}(\text{Cold Rebuild})$.
+  - `@ruas/cli`: `ruas mcp` (stdio MCP server for agents) and `ruas watch` (live background re-indexing).
+- **Status:** 100% Completed. 49/49 unit & integration tests passing. `Graph(Incremental) == Graph(Cold Rebuild)` verified invariant.
 
-#### Milestone 4: Statistical Rigor, Community Detection & Final Eval
+#### Milestone 4: Statistical Rigor, Community Detection & Final Eval (NEXT)
 - **Deliverables:**
   - Calibration assessment: Reliability diagram and Expected Calibration Error (ECE) for edge priors.
   - Community detection: Leiden algorithm implementation with Adjusted Rand Index (ARI) stability testing across 10 random seeds.

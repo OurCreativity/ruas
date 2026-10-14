@@ -53,4 +53,28 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     expect(data.totalFiles).toBe(1);
     expect(data.totalNodes).toBeGreaterThanOrEqual(2);
   }, 30_000);
+
+  it("queries code via ask command with --json", () => {
+    const raw = execSync(`node ${CLI_PATH} ask "bayar qris" ${CLI_FIXTURE} --json`).toString();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+
+    expect(data.query).toBe("bayar qris");
+    expect(data.symbols.length).toBeGreaterThan(0);
+    expect(data.symbols[0].node.name).toBe("prosesQRIS");
+  }, 30_000);
+
+  it("prints emotional damage roast with --roast", () => {
+    const output = execSync(`node ${CLI_PATH} ask "bayar qris" ${CLI_FIXTURE} --roast`).toString();
+    expect(output).toContain("prosesQRIS");
+    expect(output).toContain("RRF Score");
+  }, 30_000);
+
+  it("displays mcp and watch commands in help output", () => {
+    const output = execSync(`node ${CLI_PATH} --help`).toString();
+    expect(output).toContain("mcp");
+    expect(output).toContain("watch");
+    expect(output).toContain("Model Context Protocol");
+  }, 30_000);
 });

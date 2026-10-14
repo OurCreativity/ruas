@@ -5,9 +5,10 @@ import { resolve, join } from "node:path";
 import { Command } from "commander";
 import pc from "picocolors";
 import { SqliteStorage } from "@ruas/store";
-import { Indexer } from "@ruas/indexer";
+import { FileWatcher, Indexer } from "@ruas/indexer";
 import { SymbolResolver } from "@ruas/resolver";
 import { RetrievalPipeline } from "@ruas/rank";
+import { runStdioServer } from "@ruas/mcp";
 
 const program = new Command();
 
@@ -222,6 +223,82 @@ program
       }
       process.exit(1);
     }
+  });
+
+// --- ruas mcp ---
+program
+  .command("mcp")
+  .description("Start the Model Context Protocol (MCP) stdio server for AI agents")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--db <path>", "Custom database path")
+  .action(async (targetPath: string, options: { db?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+    if (!existsSync(dbPath)) {
+      // Auto-index if database does not exist
+      const storage = new SqliteStorage({ dbPath });
+      const indexer = new Indexer(storage);
+      await indexer.runIndex({ rootDir });
+      const resolver = new SymbolResolver(storage);
+      await resolver.resolveAll();
+      await storage.close();
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    await runStdioServer(storage, { name: "ruas", version: "0.1.0" });
+  });
+
+// --- ruas watch ---
+program
+  .command("watch")
+  .description("Watch directory for file changes and incrementally update the graph")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--db <path>", "Custom database path")
+  .option("--debounce <ms>", "Debounce interval in milliseconds", "500")
+  .action(async (targetPath: string, options: { db?: string; debounce?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const debounceMs = parseInt(options.debounce ?? "500", 10);
+
+    const storage = new SqliteStorage({ dbPath });
+    const indexer = new Indexer(storage);
+    const watcher = new FileWatcher(indexer, { rootDir, debounceMs });
+
+    console.log(pc.cyan(`\n👀 Ruas Watcher started on ${pc.bold(rootDir)}`));
+    console.log(pc.dim(`  Database: ${dbPath}`));
+    console.log(pc.dim(`  Debounce: ${debounceMs}ms\n`));
+
+    // Initial pass
+    const initial = await indexer.runIndex({ rootDir });
+    const resolver = new SymbolResolver(storage);
+    const initialResolve = await resolver.resolveAll();
+    console.log(pc.green(`✔ Initial graph ready: ${initial.nodesCount} nodes, ${initial.edgesCount} edges (${initialResolve.edgesCreated} resolved cross-file)`));
+
+    watcher.on("change", (e) => {
+      console.log(pc.yellow(`✎ File changed: ${pc.dim(e.filename)}`));
+    });
+
+    watcher.on("indexed", async (summary) => {
+      const res = await resolver.resolveAll();
+      console.log(pc.green(`✔ Incremental update: ${summary.dirtyFiles} file(s) updated in ${summary.durationMs}ms (${res.edgesCreated} cross-file edges)`));
+    });
+
+    watcher.on("error", (err) => {
+      console.error(pc.red(`✖ Watcher error: ${err instanceof Error ? err.message : String(err)}`));
+    });
+
+    watcher.start();
+
+    const stop = async () => {
+      console.log(pc.cyan("\n🛑 Stopping Ruas Watcher..."));
+      watcher.stop();
+      await storage.close();
+      process.exit(0);
+    };
+
+    process.on("SIGINT", () => void stop());
+    process.on("SIGTERM", () => void stop());
   });
 
 program.parse(process.argv);

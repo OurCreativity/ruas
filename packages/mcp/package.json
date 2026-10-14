@@ -1,0 +1,27 @@
+{
+  "name": "@ruas/mcp",
+  "version": "0.1.0",
+  "description": "Model Context Protocol (MCP) stdio server for Ruas Universal Code Intelligence",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "@ruas/core": "workspace:*",
+    "@ruas/indexer": "workspace:*",
+    "@ruas/rank": "workspace:*",
+    "@ruas/resolver": "workspace:*",
+    "@ruas/store": "workspace:*",
+    "zod": "^3.24.2"
+  }
+}
