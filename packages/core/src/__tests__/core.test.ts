@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   computeBetaCredibleInterval,
+  calculateExpectedCalibrationError,
+  type CalibrationSample,
   createEdgeId,
   createFileId,
   createNodeId,
@@ -93,3 +95,41 @@ describe("@ruas/core Zod Validation", () => {
     expect(parsed.success).toBe(true);
   });
 });
+
+describe("@ruas/core Expected Calibration Error (ECE)", () => {
+  it("computes ECE accurately on well-calibrated edge samples", () => {
+    // Synthetic sample matching evidence priors:
+    // same_scope (prior ~0.89), unique (prior ~0.75), ambiguous (prior ~0.33)
+    const samples: CalibrationSample[] = [
+      // 9 same_scope edges, 8 true, 1 false
+      ...Array(8).fill({ predictedProb: 0.89, trueLabel: 1 as const }),
+      { predictedProb: 0.89, trueLabel: 0 as const },
+      // 8 unique candidate edges, 6 true, 2 false (acc = 0.75)
+      ...Array(6).fill({ predictedProb: 0.75, trueLabel: 1 as const }),
+      ...Array(2).fill({ predictedProb: 0.75, trueLabel: 0 as const }),
+      // 6 ambiguous edges, 2 true, 4 false (acc = 0.33)
+      ...Array(2).fill({ predictedProb: 0.33, trueLabel: 1 as const }),
+      ...Array(4).fill({ predictedProb: 0.33, trueLabel: 0 as const }),
+    ];
+
+    const report = calculateExpectedCalibrationError(samples, 10);
+    expect(report.totalSamples).toBe(23);
+    expect(report.ece).toBeLessThanOrEqual(0.05); // extremely well-calibrated
+    expect(report.isWellCalibrated).toBe(true);
+  });
+
+  it("detects uncalibrated overconfident predictions", () => {
+    // Overconfident: predicts 0.95, but trueLabel is 0
+    const overconfidentSamples = [
+      { predictedProb: 0.95, trueLabel: 0 as const },
+      { predictedProb: 0.95, trueLabel: 0 as const },
+      { predictedProb: 0.95, trueLabel: 0 as const },
+      { predictedProb: 0.95, trueLabel: 1 as const },
+    ];
+
+    const report = calculateExpectedCalibrationError(overconfidentSamples, 5);
+    expect(report.ece).toBeGreaterThan(0.5);
+    expect(report.isWellCalibrated).toBe(false);
+  });
+});
+
