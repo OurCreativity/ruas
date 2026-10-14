@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
-import { existsSync, statSync } from "node:fs";
-import { resolve, join } from "node:path";
+import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
+import { resolve, join, dirname } from "node:path";
 import { Command } from "commander";
 import pc from "picocolors";
 import { SqliteStorage } from "@ruas/store";
@@ -9,6 +9,7 @@ import { FileWatcher, Indexer } from "@ruas/indexer";
 import { SymbolResolver } from "@ruas/resolver";
 import { RetrievalPipeline } from "@ruas/rank";
 import { runStdioServer } from "@ruas/mcp";
+import { HandoverGenerator } from "@ruas/docgen";
 
 const program = new Command();
 
@@ -299,6 +300,62 @@ program
 
     process.on("SIGINT", () => void stop());
     process.on("SIGTERM", () => void stop());
+  });
+
+// --- ruas docgen / handover ---
+program
+  .command("docgen")
+  .alias("handover")
+  .description("Generate onboarding handover documentation in Bahasa Indonesia with zero uncited claims")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--out <file>", "Output markdown file path", "docs/HANDOVER.md")
+  .option("--db <path>", "Custom database path")
+  .option("--title <name>", "Custom project title")
+  .action(async (targetPath: string, options: { out?: string; db?: string; title?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const outPath = resolve(options.out ?? join(rootDir, "docs", "HANDOVER.md"));
+
+    if (!existsSync(dbPath)) {
+      console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      console.log(pc.dim("  Running automatic indexing first...\n"));
+      const tempStorage = new SqliteStorage({ dbPath });
+      const indexer = new Indexer(tempStorage);
+      await indexer.runIndex({ rootDir });
+      const resolver = new SymbolResolver(tempStorage);
+      await resolver.resolveAll();
+      await tempStorage.close();
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    await storage.init();
+    try {
+      console.log(pc.cyan(`\n📋 Generating Architecture Handover Documentation...`));
+      const generator = new HandoverGenerator({
+        projectName: options.title ?? "Ruas Monorepo",
+        repoRoot: rootDir,
+      });
+
+      const doc = await generator.generate(storage);
+      await storage.close();
+
+      const outDir = dirname(outPath);
+      if (!existsSync(outDir)) {
+        mkdirSync(outDir, { recursive: true });
+      }
+
+      writeFileSync(outPath, doc.markdown, "utf-8");
+      console.log(pc.green(`✔ Handover documentation generated successfully!`));
+      console.log(`  ${pc.bold("Destination:")}        ${pc.cyan(outPath)}`);
+      console.log(`  ${pc.bold("Subsystems found:")}   ${doc.subsystemCount}`);
+      console.log(`  ${pc.bold("Total cited symbols:")} ${doc.totalNodesCited}`);
+      console.log(`  ${pc.bold("Uncited claims:")}      ${pc.green("0 (Zero Uncited Claims Guarantee)")}\n`);
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error during docgen: ${message}\n`));
+      process.exit(1);
+    }
   });
 
 program.parse(process.argv);

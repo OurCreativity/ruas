@@ -26,6 +26,9 @@ importers:
       '@ruas/core':
         specifier: workspace:*
         version: link:../core
+      '@ruas/docgen':
+        specifier: workspace:*
+        version: link:../docgen
       '@ruas/indexer':
         specifier: workspace:*
         version: link:../indexer
@@ -56,6 +59,18 @@ importers:
       zod:
         specifier: ^3.24.2
         version: 3.25.76
+
+  packages/docgen:
+    dependencies:
+      '@ruas/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ruas/rank':
+        specifier: workspace:*
+        version: link:../rank
+      '@ruas/store':
+        specifier: workspace:*
+        version: link:../store
 
   packages/eval:
     dependencies:

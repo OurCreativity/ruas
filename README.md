@@ -102,6 +102,9 @@ ruas ask "calculate customer discount" --roast
 # Start background live file watcher
 ruas watch .
 
+# Generate onboarding handover documentation with zero uncited claims
+ruas docgen . --out docs/HANDOVER.md
+
 # Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
 ruas mcp .
 ```

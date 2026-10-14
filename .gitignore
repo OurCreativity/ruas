@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .ruas/
+**/.ruas/
+*.db
 coverage/
 *.log
 .DS_Store

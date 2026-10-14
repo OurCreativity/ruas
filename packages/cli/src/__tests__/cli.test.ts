@@ -1,6 +1,6 @@
 import { execSync } from "node:child_process";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { join, resolve } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const CLI_FIXTURE = join(process.cwd(), ".tmp", "cli-fixture");
@@ -23,6 +23,7 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
 
   afterAll(() => {
     rmSync(CLI_FIXTURE, { recursive: true, force: true });
+    rmSync(resolve(process.cwd(), "docs/TEST_CLI_HANDOVER.md"), { force: true });
   });
 
   it("prints version flag correctly", () => {
@@ -75,6 +76,15 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     const output = execSync(`node ${CLI_PATH} --help`).toString();
     expect(output).toContain("mcp");
     expect(output).toContain("watch");
+    expect(output).toContain("docgen");
     expect(output).toContain("Model Context Protocol");
+  }, 30_000);
+
+  it("generates handover documentation with docgen command", () => {
+    const testOut = resolve(process.cwd(), "docs/TEST_CLI_HANDOVER.md");
+    const output = execSync(`node ${CLI_PATH} docgen ${CLI_FIXTURE} --out ${testOut}`).toString();
+    expect(output).toContain("Handover documentation generated successfully");
+    expect(output).toContain("Zero Uncited Claims Guarantee");
+    expect(existsSync(testOut)).toBe(true);
   }, 30_000);
 });
