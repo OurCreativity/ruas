@@ -10,6 +10,7 @@ import { SymbolResolver } from "@ruas/resolver";
 import { RetrievalPipeline } from "@ruas/rank";
 import { runStdioServer } from "@ruas/mcp";
 import { HandoverGenerator } from "@ruas/docgen";
+import { startGraphServer, exportStandaloneHtml } from "@ruas/ui";
 
 const program = new Command();
 
@@ -354,6 +355,106 @@ program
       await storage.close();
       const message = error instanceof Error ? error.message : String(error);
       console.error(pc.red(`\n✖ Error during docgen: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+// --- ruas ui ---
+program
+  .command("ui")
+  .description("Launch the interactive, glassmorphic visual graph explorer in your browser")
+  .argument("[path]", "Path to project directory", ".")
+  .option("-p, --port <number>", "HTTP port to listen on", "4200")
+  .option("--host <host>", "Host address to bind to", "localhost")
+  .option("--db <path>", "Custom database path")
+  .action(async (targetPath: string, options: { port?: string; host?: string; db?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const port = parseInt(options.port ?? "4200", 10);
+    const host = options.host ?? "localhost";
+
+    if (!existsSync(dbPath)) {
+      console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      console.log(pc.dim("  Running automatic indexing first...\n"));
+      const tempStorage = new SqliteStorage({ dbPath });
+      const indexer = new Indexer(tempStorage);
+      await indexer.runIndex({ rootDir });
+      const resolver = new SymbolResolver(tempStorage);
+      await resolver.resolveAll();
+      await tempStorage.close();
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    await storage.init();
+
+    try {
+      const server = await startGraphServer({
+        storage,
+        projectName: targetPath === "." ? "Root Repository" : targetPath,
+        port,
+        host,
+      });
+
+      console.log(pc.cyan(`\n🌿 Ruas Visual Graph Explorer is live!`));
+      console.log(`  ${pc.bold("Local URL:")}     ${pc.green(pc.bold(server.url))}`);
+      console.log(`  ${pc.bold("Database:")}      ${pc.dim(dbPath)}`);
+      console.log(`  ${pc.dim("Press Ctrl+C to stop the server.\n")}`);
+
+      const shutdown = async () => {
+        console.log(pc.cyan("\n🛑 Shutting down Ruas Explorer..."));
+        await server.close();
+        await storage.close();
+        process.exit(0);
+      };
+
+      process.on("SIGINT", () => void shutdown());
+      process.on("SIGTERM", () => void shutdown());
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error starting UI server: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+// --- ruas export ---
+program
+  .command("export")
+  .description("Export codebase graph as a standalone offline HTML visualization")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--html <file>", "Output HTML file path", "docs/graph.html")
+  .option("--db <path>", "Custom database path")
+  .action(async (targetPath: string, options: { html?: string; db?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const outPath = resolve(options.html ?? join(rootDir, "docs", "graph.html"));
+
+    if (!existsSync(dbPath)) {
+      console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      console.log(pc.dim("  Running automatic indexing first...\n"));
+      const tempStorage = new SqliteStorage({ dbPath });
+      const indexer = new Indexer(tempStorage);
+      await indexer.runIndex({ rootDir });
+      const resolver = new SymbolResolver(tempStorage);
+      await resolver.resolveAll();
+      await tempStorage.close();
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    await storage.init();
+
+    try {
+      console.log(pc.cyan(`\n📊 Exporting Standalone Graph Explorer HTML...`));
+      await exportStandaloneHtml(storage, outPath, targetPath === "." ? "Root Repository" : targetPath);
+      await storage.close();
+
+      console.log(pc.green(`✔ Standalone HTML visualizer exported successfully!`));
+      console.log(`  ${pc.bold("Destination:")}  ${pc.cyan(outPath)}`);
+      console.log(`  ${pc.dim("You can open this file directly in any web browser without a running server.\n")}`);
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error exporting HTML: ${message}\n`));
       process.exit(1);
     }
   });

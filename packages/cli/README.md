@@ -113,6 +113,12 @@ ruas watch .
 # Generate onboarding handover documentation with zero uncited claims
 ruas docgen . --out docs/HANDOVER.md
 
+# Launch interactive, glassmorphic visual graph explorer in your browser (60 FPS canvas)
+ruas ui . --port 4200
+
+# Export standalone offline HTML graph visualization
+ruas export . --html docs/graph.html
+
 # Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
 ruas mcp .
 ```

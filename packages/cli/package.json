@@ -63,6 +63,7 @@
     "@ruas/parser": "workspace:*",
     "@ruas/rank": "workspace:*",
     "@ruas/resolver": "workspace:*",
-    "@ruas/store": "workspace:*"
+    "@ruas/store": "workspace:*",
+    "@ruas/ui": "workspace:*"
   }
 }

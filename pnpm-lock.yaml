@@ -81,6 +81,9 @@ importers:
       '@ruas/store':
         specifier: workspace:*
         version: link:../store
+      '@ruas/ui':
+        specifier: workspace:*
+        version: link:../ui
 
   packages/core:
     dependencies:
@@ -216,6 +219,18 @@ importers:
       '@ruas/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/ui:
+    dependencies:
+      '@ruas/core':
+        specifier: workspace:*
+        version: link:../core
+      '@ruas/rank':
+        specifier: workspace:*
+        version: link:../rank
+      '@ruas/store':
+        specifier: workspace:*
+        version: link:../store
 
 packages:
 
