@@ -1,27 +1,68 @@
 {
-  "name": "@ruas/cli",
+  "name": "ruas",
   "version": "0.1.0",
-  "description": "Command-line interface for Ruas code intelligence engine",
+  "description": "Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
     "ruas": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "tsc -b && chmod +x dist/index.js",
+    "build": "tsup",
     "clean": "rm -rf dist"
   },
+  "keywords": [
+    "code-intelligence",
+    "mcp",
+    "model-context-protocol",
+    "code-graph",
+    "pagerank",
+    "fts5",
+    "sqlite",
+    "tree-sitter",
+    "ai-agent",
+    "ast",
+    "static-analysis"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fk0u/ruas.git"
+  },
+  "homepage": "https://github.com/fk0u/ruas#readme",
+  "bugs": {
+    "url": "https://github.com/fk0u/ruas/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.0.0"
+  },
   "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.1",
+    "commander": "^13.1.0",
+    "fast-glob": "^3.3.3",
+    "ignore": "^7.0.3",
+    "picocolors": "^1.1.1",
+    "tree-sitter-wasms": "^0.1.13",
+    "web-tree-sitter": "^0.24.7",
+    "yaml": "^2.7.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
     "@ruas/core": "workspace:*",
     "@ruas/docgen": "workspace:*",
     "@ruas/indexer": "workspace:*",
     "@ruas/mcp": "workspace:*",
+    "@ruas/nlp": "workspace:*",
     "@ruas/parser": "workspace:*",
     "@ruas/rank": "workspace:*",
     "@ruas/resolver": "workspace:*",
-    "@ruas/store": "workspace:*",
-    "commander": "^13.1.0",
-    "picocolors": "^1.1.1"
+    "@ruas/store": "workspace:*"
   }
 }

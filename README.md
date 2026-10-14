@@ -71,18 +71,26 @@ Ruas is structured as a high-performance pnpm workspace with strict boundary dec
 
 ### Installation
 
+#### Option 1: Run instantly with `npx` (No Install Required)
 ```bash
-# Clone the repository
+npx ruas ask "fungsi bayar qris" --roast
+```
+
+#### Option 2: Install globally via `npm` or `pnpm`
+```bash
+# Global install via npm
+npm install -g ruas
+
+# Or via pnpm
+pnpm add -g ruas
+```
+
+#### Option 3: Local Development (from source)
+```bash
 git clone https://github.com/fk0u/ruas.git
 cd ruas
-
-# Install dependencies (requires Node >= 22.0.0 and pnpm >= 10.0.0)
 pnpm install
-
-# Build all packages
 pnpm build
-
-# Run comprehensive test suite
 pnpm test
 ```
 
