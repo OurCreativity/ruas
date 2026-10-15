@@ -9,7 +9,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "typecheck": "tsc --noEmit -p tsconfig.json"
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "publish:ruas": "pnpm build && pnpm test && cd packages/cli && npm publish --access public"
   },
   "devDependencies": {
     "@types/node": "^22.13.4",
