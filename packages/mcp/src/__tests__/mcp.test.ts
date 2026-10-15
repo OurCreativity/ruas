@@ -202,9 +202,28 @@ describe("@ruas/mcp McpServer & Tools Integration", () => {
     });
     const text = response.content[0].text;
 
-    expect(text).toContain("Shortest Dependency Path");
+    expect(text).toContain("Shortest Path");
     expect(text).toContain("checkoutOrder");
     expect(text).toContain("calculateDiscount");
     expect(text).toContain("Cumulative Bayesian Confidence");
+  });
+
+  it("handles find_path with k > 1 for alternative paths", async () => {
+    const server = createRuasMcpServer(storage);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tools = (server as any)._registeredTools;
+    const pathTool = tools["find_path"];
+
+    const response = await pathTool.handler({
+      fromSymbol: "checkoutOrder",
+      toSymbol: "calculateDiscount",
+      k: 2,
+    });
+    const text = response.content[0].text;
+
+    expect(text).toContain("Top");
+    expect(text).toContain("Shortest Paths");
+    expect(text).toContain("Dijkstra");
   });
 });

@@ -1,6 +1,6 @@
 {
   "name": "@ruas/docgen",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Deterministic handover and architecture onboarding documentation generator with zero uncited claims",
   "type": "module",
   "main": "./dist/index.js",

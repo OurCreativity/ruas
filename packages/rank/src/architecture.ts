@@ -1,12 +1,15 @@
 import type {
   ArchitectureHealthReport,
   CycleInfo,
+  DijkstraHorizonResult,
   EdgeRecord,
+  KPathResult,
   NodeRecord,
   OrphanInfo,
   PathResult,
   SubsystemCoupling,
 } from "@ruas/core";
+import { DijkstraEngine } from "./dijkstra.js";
 
 export class ArchitectureAnalyzer {
   /**
@@ -284,7 +287,7 @@ export class ArchitectureAnalyzer {
 
   /**
    * Finds the shortest call/dependency path between a Source Node and a Target Node
-   * using Dijkstra's algorithm weighted by Bayesian edge confidence.
+   * using Dijkstra's algorithm weighted by Bayesian edge confidence (-ln(p)).
    */
   public static findPath(
     sourceId: string,
@@ -292,142 +295,32 @@ export class ArchitectureAnalyzer {
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
   ): PathResult {
-    const nodeMap = new Map<string, NodeRecord>(nodes.map((n) => [n.id, n]));
-    const srcNode = nodeMap.get(sourceId);
-    const dstNode = nodeMap.get(targetId);
+    return DijkstraEngine.findShortestPath(sourceId, targetId, nodes, edges);
+  }
 
-    if (!srcNode || !dstNode) {
-      throw new Error(`Source or Target node not found in graph.`);
-    }
+  /**
+   * Finds the top K alternative shortest paths between source and target using Yen's algorithm.
+   */
+  public static findKPaths(
+    sourceId: string,
+    targetId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    k = 3,
+  ): KPathResult {
+    return DijkstraEngine.findKShortestPaths(sourceId, targetId, nodes, edges, k);
+  }
 
-    if (sourceId === targetId) {
-      return {
-        sourceNode: srcNode,
-        targetNode: dstNode,
-        found: true,
-        path: [{ node: srcNode }],
-        cumulativeConfidence: 1.0,
-        hops: 0,
-      };
-    }
-
-    const dependencyKinds = new Set(["calls", "imports", "extends", "implements", "references", "contains"]);
-    const adj = new Map<string, { target: string; edge: EdgeRecord; weight: number }[]>();
-
-    for (const n of nodes) {
-      adj.set(n.id, []);
-    }
-
-    for (const e of edges) {
-      if (dependencyKinds.has(e.kind) && adj.has(e.srcId) && nodeMap.has(e.dstId)) {
-        const p = e.alpha / (e.alpha + e.beta);
-        // Cost = -log(p) ensures shortest path maximizes cumulative probability
-        const cost = Math.max(0.01, -Math.log(Math.max(0.01, p)));
-        adj.get(e.srcId)!.push({ target: e.dstId, edge: e, weight: cost });
-      }
-    }
-
-    // Dijkstra algorithm
-    const dist = new Map<string, number>();
-    const prev = new Map<string, { prevNodeId: string; edge: EdgeRecord }>();
-    const visited = new Set<string>();
-
-    for (const n of nodes) {
-      dist.set(n.id, Infinity);
-    }
-    dist.set(sourceId, 0);
-
-    const unvisited = new Set<string>(nodes.map((n) => n.id));
-
-    while (unvisited.size > 0) {
-      // Find min distance unvisited
-      let u: string | null = null;
-      let minD = Infinity;
-      for (const id of unvisited) {
-        const d = dist.get(id) ?? Infinity;
-        if (d < minD) {
-          minD = d;
-          u = id;
-        }
-      }
-
-      if (!u || minD === Infinity) break;
-      if (u === targetId) break;
-
-      unvisited.delete(u);
-      visited.add(u);
-
-      const neighbors = adj.get(u) ?? [];
-      for (const { target: v, edge, weight } of neighbors) {
-        if (visited.has(v)) continue;
-        const alt = minD + weight;
-        if (alt < (dist.get(v) ?? Infinity)) {
-          dist.set(v, alt);
-          prev.set(v, { prevNodeId: u, edge });
-        }
-      }
-    }
-
-    if (!prev.has(targetId)) {
-      return {
-        sourceNode: srcNode,
-        targetNode: dstNode,
-        found: false,
-        path: [],
-        cumulativeConfidence: 0,
-        hops: 0,
-      };
-    }
-
-    // Reconstruct path
-    const pathNodes: { node: NodeRecord; edgeToNext?: EdgeRecord | undefined; confidence?: number | undefined }[] = [];
-    let curr = targetId;
-    let cumulativeProb = 1.0;
-
-    const sequence: { node: NodeRecord; edge: EdgeRecord; conf: number }[] = [];
-    while (curr !== sourceId) {
-      const step = prev.get(curr);
-      if (!step) break;
-      const node = nodeMap.get(curr)!;
-      const p = step.edge.alpha / (step.edge.alpha + step.edge.beta);
-      cumulativeProb *= p;
-      sequence.unshift({ node, edge: step.edge, conf: p });
-      curr = step.prevNodeId;
-    }
-
-    if (sequence.length > 0) {
-      pathNodes.push({
-        node: srcNode,
-        edgeToNext: sequence[0]?.edge,
-        confidence: sequence[0]?.conf,
-      });
-
-      for (let i = 0; i < sequence.length; i++) {
-        const item = sequence[i]!;
-        const nextItem = sequence[i + 1];
-        if (nextItem) {
-          pathNodes.push({
-            node: item.node,
-            edgeToNext: nextItem.edge,
-            confidence: nextItem.conf,
-          });
-        } else {
-          pathNodes.push({
-            node: item.node,
-          });
-        }
-      }
-    } else {
-      pathNodes.push({ node: srcNode });
-    }
-
-    return {
-      sourceNode: srcNode,
-      targetNode: dstNode,
-      found: true,
-      path: pathNodes,
-      cumulativeConfidence: Math.round(cumulativeProb * 1000) / 1000,
-      hops: sequence.length,
-    };
+  /**
+   * Computes Single-Source Shortest Path (SSSP) Dijkstra horizon from originId.
+   */
+  public static computeDijkstraHorizon(
+    originId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    maxHops = 4,
+    minConfidence = 0.05,
+  ): DijkstraHorizonResult {
+    return DijkstraEngine.computeDijkstraHorizon(originId, nodes, edges, maxHops, minConfidence);
   }
 }

@@ -23,7 +23,7 @@ const program = new Command();
 program
   .name("ruas")
   .description("Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval")
-  .version("0.2.0");
+  .version("1.0.0");
 
 // --- ruas index ---
 program
@@ -583,15 +583,17 @@ program
 // --- ruas path ---
 program
   .command("path")
-  .description("Find the shortest directed dependency or call path between two symbols")
+  .description("Find the shortest directed dependency or call path between two symbols using Dijkstra algorithm")
   .argument("<source>", "Source symbol name or qualified name")
   .argument("<target>", "Target symbol name or qualified name")
   .argument("[path]", "Path to project directory", ".")
+  .option("-k, --k <number>", "Number of alternative shortest paths to discover using Yen's algorithm", "1")
   .option("--db <path>", "Custom database path")
   .option("--json", "Output results in JSON format", false)
-  .action(async (source: string, target: string, targetPath: string, options: { db?: string; json?: boolean }) => {
+  .action(async (source: string, target: string, targetPath: string, options: { k?: string; db?: string; json?: boolean }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const k = Math.max(1, parseInt(options.k ?? "1", 10));
 
     if (!existsSync(dbPath)) {
       if (options.json) {
@@ -626,6 +628,40 @@ program
         return;
       }
 
+      if (k > 1) {
+        const kResult = ArchitectureAnalyzer.findKPaths(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges, k);
+
+        if (options.json) {
+          console.log(JSON.stringify(kResult, null, 2));
+          return;
+        }
+
+        console.log(pc.cyan(`\n🔗 Ruas Dijkstra K-Shortest Path Traversal (Top ${kResult.paths.length} Routes)`));
+        console.log(`  ${pc.bold("Origin:")}        ${pc.green(kResult.sourceNode.qualifiedName)}`);
+        console.log(`  ${pc.bold("Destination:")}   ${pc.green(kResult.targetNode.qualifiedName)}`);
+
+        if (!kResult.found || kResult.paths.length === 0) {
+          console.log(pc.yellow(`\n  No directed path found between ${source} and ${target}.\n`));
+          return;
+        }
+
+        kResult.paths.forEach((p, idx) => {
+          const badge = idx === 0 ? pc.green(pc.bold("⭐ Optimal Route #1")) : pc.cyan(`Alternative Route #${idx + 1}`);
+          const costDisplay = p.cost !== undefined ? `, cost ${p.cost.toFixed(3)}` : "";
+          console.log(`\n  ${badge} ${pc.dim(`(${p.hops} hops, ${(p.cumulativeConfidence * 100).toFixed(1)}% Bayesian confidence${costDisplay})`)}`);
+          for (let i = 0; i < p.path.length; i++) {
+            const step = p.path[i]!;
+            console.log(`    ${pc.bold(`${i + 1}.`)} ${pc.white(step.node.name)} ${pc.dim(`(${step.node.kind} at ${step.node.qualifiedName})`)}`);
+            if (step.edgeToNext) {
+              const conf = step.confidence !== undefined ? `[${Math.round(step.confidence * 100)}% conf]` : "";
+              console.log(`       ${pc.cyan("└──▶")} ${pc.magenta(step.edgeToNext.kind)} ${pc.dim(conf)} ${pc.cyan("──▶")}`);
+            }
+          }
+        });
+        console.log();
+        return;
+      }
+
       const result = ArchitectureAnalyzer.findPath(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges);
 
       if (options.json) {
@@ -633,7 +669,7 @@ program
         return;
       }
 
-      console.log(pc.cyan(`\n🔗 Ruas Shortest Path Traversal`));
+      console.log(pc.cyan(`\n🔗 Ruas Shortest Path Traversal (Dijkstra Minimal Bayesian Resistance)`));
       console.log(`  ${pc.bold("Origin:")}        ${pc.green(result.sourceNode.qualifiedName)}`);
       console.log(`  ${pc.bold("Destination:")}   ${pc.green(result.targetNode.qualifiedName)}`);
 
@@ -665,13 +701,14 @@ program
 // --- ruas trace ---
 program
   .command("trace")
-  .description("Trace blast radius and caller/callee dependencies of a symbol with Bayesian confidence")
+  .description("Trace blast radius and caller/callee dependencies of a symbol with Bayesian confidence or Dijkstra horizon")
   .argument("<symbol>", "Symbol name to trace")
   .argument("[path]", "Path to project directory", ".")
   .option("-d, --depth <number>", "Traversal depth (default: 2)", "2")
+  .option("--dijkstra", "Compute Single-Source Shortest Path (SSSP) Dijkstra horizon showing probability decay", false)
   .option("--db <path>", "Custom database path")
   .option("--json", "Output results in JSON format", false)
-  .action(async (symbolName: string, targetPath: string, options: { depth?: string; db?: string; json?: boolean }) => {
+  .action(async (symbolName: string, targetPath: string, options: { depth?: string; dijkstra?: boolean; db?: string; json?: boolean }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
     const depth = parseInt(options.depth ?? "2", 10);
@@ -702,6 +739,40 @@ program
       }
 
       const target = symbolNodes[0]!;
+
+      if (options.dijkstra) {
+        const nodes = await storage.getAllNodes();
+        const edges = await storage.getAllEdges();
+        await storage.close();
+
+        const horizon = ArchitectureAnalyzer.computeDijkstraHorizon(target.id, nodes, edges, depth);
+
+        if (options.json) {
+          console.log(JSON.stringify(horizon, null, 2));
+          return;
+        }
+
+        console.log(pc.cyan(`\n⚡ Ruas Dijkstra SSSP Horizon — ${pc.bold(target.name)}`));
+        console.log(`  ${pc.bold("Origin:")}        ${pc.green(horizon.origin.qualifiedName)} (${horizon.origin.kind})`);
+        console.log(`  ${pc.bold("Max Depth:")}     ${depth} hops`);
+        console.log(`  ${pc.bold("Reachable:")}     ${horizon.reachableCount} symbols in horizon\n`);
+
+        if (horizon.horizon.length === 0) {
+          console.log(pc.dim("  No downstream dependencies reachable within horizon limits.\n"));
+          return;
+        }
+
+        console.log(pc.bold("  🌐 Single-Source Shortest Path Horizon (Probability Decay):"));
+        for (const item of horizon.horizon) {
+          const probBar = "■".repeat(Math.max(1, Math.round(item.cumulativeConfidence * 10)));
+          const probStr = `${(item.cumulativeConfidence * 100).toFixed(1)}%`;
+          console.log(`    • ${pc.bold(item.node.name)} ${pc.dim(`(${item.node.kind})`)}`);
+          console.log(`      ${pc.green(probBar)} ${pc.dim(probStr)} | ${item.hops} hop(s) | Dijkstra Cost: ${item.distance.toFixed(3)} | via ${pc.dim(item.node.qualifiedName)}`);
+        }
+        console.log();
+        return;
+      }
+
       const inbound = await storage.getInboundEdges(target.id);
       const outbound = await storage.getOutboundEdges(target.id);
       await storage.close();

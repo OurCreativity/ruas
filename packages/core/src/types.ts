@@ -167,5 +167,28 @@ export interface PathResult {
   }[];
   readonly cumulativeConfidence: number;
   readonly hops: number;
+  readonly cost?: number;
 }
+
+export interface DijkstraHorizonNode {
+  readonly node: NodeRecord;
+  readonly distance: number; // sum of -ln(p)
+  readonly cumulativeConfidence: number; // product of edge probabilities
+  readonly hops: number;
+}
+
+export interface DijkstraHorizonResult {
+  readonly origin: NodeRecord;
+  readonly reachableCount: number;
+  readonly horizon: readonly DijkstraHorizonNode[];
+}
+
+export interface KPathResult {
+  readonly sourceNode: NodeRecord;
+  readonly targetNode: NodeRecord;
+  readonly paths: readonly PathResult[];
+  readonly totalPathsFound: number;
+  readonly found: boolean;
+}
+
 

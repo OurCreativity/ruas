@@ -28,7 +28,7 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
 
   it("prints version flag correctly", () => {
     const output = execSync(`node ${CLI_PATH} --version`).toString().trim();
-    expect(output).toBe("0.2.0");
+    expect(output).toBe("1.0.0");
   }, 30_000);
 
   it("indexes fixture directory with --json", () => {
@@ -110,5 +110,20 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     const output = execSync(`node ${CLI_PATH} trace prosesQRIS ${CLI_FIXTURE}`).toString();
     expect(output).toContain("Ruas Blast Radius Trace");
     expect(output).toContain("prosesQRIS");
+  }, 30_000);
+
+  it("computes Dijkstra SSSP horizon with trace --dijkstra --json", () => {
+    const raw = execSync(`node ${CLI_PATH} trace prosesQRIS ${CLI_FIXTURE} --dijkstra --json`).toString();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+    expect(data.origin).toBeDefined();
+    expect(data.origin.name).toBe("prosesQRIS");
+    expect(data.horizon).toBeDefined();
+  }, 30_000);
+
+  it("finds shortest path with path command", () => {
+    const output = execSync(`node ${CLI_PATH} path prosesQRIS prosesQRIS ${CLI_FIXTURE}`).toString();
+    expect(output).toContain("Ruas Shortest Path Traversal");
   }, 30_000);
 });

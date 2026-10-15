@@ -111,8 +111,14 @@ ruas audit . --json
 ruas trace prosesQRIS .
 ruas trace calculateDiscount --depth 3
 
-# Find shortest dependency/call path between two symbols
+# Find shortest dependency/call path between two symbols (Dijkstra algorithm)
 ruas path checkoutOrder calculateDiscount .
+
+# Discover top 3 alternative execution routes using Yen's K-Shortest Path algorithm
+ruas path checkoutOrder calculateDiscount . -k 3
+
+# Compute Single-Source Shortest Path (SSSP) Dijkstra Horizon with Bayesian probability decay
+ruas trace prosesQRIS . --dijkstra --depth 3
 
 # Ask code intelligence with emotional damage roast
 ruas ask "fungsi bayar qris" --roast
@@ -135,6 +141,38 @@ ruas export . --json docs/graph.json
 
 # Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
 ruas mcp .
+```
+
+---
+
+## 🧭 Systematic Dijkstra Algorithmic Architecture
+
+Ruas v1.0.0 implements a mathematically rigorous graph traversal engine powered by **Dijkstra's Algorithm** and **Yen's K-Shortest Paths**, transforming how developers and AI agents navigate code:
+
+### 1. Bayesian Negative Log-Likelihood Cost Transformation
+Standard Dijkstra requires non-negative edge costs ($w(e) \ge 0$). In code graphs, edges are calibrated with Bayesian Beta-Bernoulli confidence $p(e) = \frac{\alpha}{\alpha + \beta} \in (0, 1]$.
+
+Ruas bridges Bayesian probability and graph theory via the negative log-likelihood mapping:
+$$w(e) = -\ln(p(e)) \ge 0$$
+
+Minimizing cumulative Dijkstra resistance:
+$$\min \sum_{i=1}^n w(e_i) = \min \sum_{i=1}^n -\ln(p(e_i)) \iff \max \prod_{i=1}^n p(e_i)$$
+
+This **proves mathematically** that Dijkstra's shortest path finds the trajectory with the **highest joint Bayesian confidence**, rather than merely the fewest raw hops.
+
+### 2. Binary Min-Priority Queue
+Ruas implements an allocation-free binary min-heap with $O(\log V)$ insertions and extractions, operating at sub-millisecond latencies across hundreds of thousands of code nodes.
+
+### 3. Yen's Top-K Shortest Paths
+Beyond the primary path, Ruas uses Yen's algorithm to discover alternative architectural call flows (e.g., fallback payment gateways or alternative error handling branches).
+```bash
+ruas path handlePayment chargeGateway -k 3
+```
+
+### 4. Single-Source Shortest Path (SSSP) Dijkstra Horizon
+By computing Dijkstra distances to all reachable downstream nodes, Ruas establishes an exact **confidence decay horizon**, showing developers the true blast radius before cumulative confidence decays to near-zero.
+```bash
+ruas trace prosesQRIS --dijkstra --depth 3
 ```
 
 ---

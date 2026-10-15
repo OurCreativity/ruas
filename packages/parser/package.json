@@ -1,6 +1,6 @@
 {
   "name": "@ruas/parser",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Tree-sitter WASM AST extraction engine for Ruas",
   "type": "module",
   "main": "./dist/index.js",

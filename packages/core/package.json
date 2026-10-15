@@ -1,6 +1,6 @@
 {
   "name": "@ruas/core",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Domain types, Result pattern, deterministic IDs, and schemas for Ruas",
   "type": "module",
   "main": "./dist/index.js",
