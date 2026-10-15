@@ -7,6 +7,7 @@ export const SupportedLanguageSchema = z.enum([
   "tsx",
   "jsx",
   "php",
+  "python",
 ]);
 
 export const NodeKindSchema = z.enum(NODE_KINDS);
@@ -63,6 +64,7 @@ export const ProjectConfigSchema = z.object({
     "tsx",
     "jsx",
     "php",
+    "python",
   ]),
   excludePatterns: z.array(z.string()).default([
     "**/node_modules/**",

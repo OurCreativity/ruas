@@ -28,7 +28,7 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
 
   it("prints version flag correctly", () => {
     const output = execSync(`node ${CLI_PATH} --version`).toString().trim();
-    expect(output).toBe("0.1.0");
+    expect(output).toBe("0.2.0");
   }, 30_000);
 
   it("indexes fixture directory with --json", () => {
@@ -86,5 +86,29 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     expect(output).toContain("Handover documentation generated successfully");
     expect(output).toContain("Zero Uncited Claims Guarantee");
     expect(existsSync(testOut)).toBe(true);
+  }, 30_000);
+
+  it("performs architectural audit with --json", () => {
+    const raw = execSync(`node ${CLI_PATH} audit ${CLI_FIXTURE} --json`).toString();
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+    expect(data.score).toBeGreaterThan(0);
+    expect(data.totalCycles).toBeDefined();
+    expect(data.totalOrphans).toBeDefined();
+  }, 30_000);
+
+  it("exports graph as Mermaid diagram", () => {
+    const testMmd = resolve(process.cwd(), ".tmp/test-cli.mmd");
+    const output = execSync(`node ${CLI_PATH} export ${CLI_FIXTURE} --mermaid ${testMmd}`).toString();
+    expect(output).toContain("Mermaid diagram exported");
+    expect(existsSync(testMmd)).toBe(true);
+    rmSync(testMmd, { force: true });
+  }, 30_000);
+
+  it("traces symbol blast radius with trace command", () => {
+    const output = execSync(`node ${CLI_PATH} trace prosesQRIS ${CLI_FIXTURE}`).toString();
+    expect(output).toContain("Ruas Blast Radius Trace");
+    expect(output).toContain("prosesQRIS");
   }, 30_000);
 });

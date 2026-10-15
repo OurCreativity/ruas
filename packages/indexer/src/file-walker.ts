@@ -81,6 +81,7 @@ export class FileWalker {
       "**/*.mjs",
       "**/*.cjs",
       "**/*.php",
+      "**/*.py",
     ];
 
     const defaultGlobIgnores = [
@@ -156,6 +157,8 @@ export class FileWalker {
         return "jsx";
       case "php":
         return "php";
+      case "py":
+        return "python";
       default:
         return null;
     }

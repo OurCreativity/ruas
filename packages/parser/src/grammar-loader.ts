@@ -50,6 +50,9 @@ export class GrammarLoader {
       case "php":
         wasmFileName = "tree-sitter-php.wasm";
         break;
+      case "python":
+        wasmFileName = "tree-sitter-python.wasm";
+        break;
       default: {
         const exhaustiveCheck: never = lang;
         throw new Error(`Unsupported language for tree-sitter: ${String(exhaustiveCheck)}`);

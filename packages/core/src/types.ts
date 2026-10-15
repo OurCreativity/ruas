@@ -2,7 +2,7 @@
  * Core domain types and enumerations for the Ruas knowledge graph.
  */
 
-export type SupportedLanguage = "typescript" | "javascript" | "tsx" | "jsx" | "php";
+export type SupportedLanguage = "typescript" | "javascript" | "tsx" | "jsx" | "php" | "python";
 
 export const NODE_KINDS = [
   "file",
@@ -119,3 +119,53 @@ export interface ProjectConfig {
   readonly maxFileSize: number; // in bytes, default 1MB
   readonly debounceMs: number; // default 800ms
 }
+
+export interface CycleInfo {
+  readonly id: string;
+  readonly length: number;
+  readonly nodeIds: readonly string[];
+  readonly nodeNames: readonly string[];
+  readonly files: readonly string[];
+}
+
+export interface OrphanInfo {
+  readonly node: NodeRecord;
+  readonly reason: string;
+}
+
+export interface SubsystemCoupling {
+  readonly subsystem: string;
+  readonly afferentCoupling: number; // Ca
+  readonly efferentCoupling: number; // Ce
+  readonly instability: number; // I = Ce / (Ca + Ce)
+  readonly nodeCount: number;
+}
+
+export interface ArchitectureHealthReport {
+  readonly score: number; // 0 - 100
+  readonly grade: "A" | "B" | "C" | "D" | "F";
+  readonly totalCycles: number;
+  readonly cycles: readonly CycleInfo[];
+  readonly totalOrphans: number;
+  readonly orphans: readonly OrphanInfo[];
+  readonly subsystemCouplings: readonly SubsystemCoupling[];
+  readonly godNodes: readonly {
+    readonly node: NodeRecord;
+    readonly degree: number;
+    readonly role: string;
+  }[];
+}
+
+export interface PathResult {
+  readonly sourceNode: NodeRecord;
+  readonly targetNode: NodeRecord;
+  readonly found: boolean;
+  readonly path: readonly {
+    readonly node: NodeRecord;
+    readonly edgeToNext?: EdgeRecord | undefined;
+    readonly confidence?: number | undefined;
+  }[];
+  readonly cumulativeConfidence: number;
+  readonly hops: number;
+}
+

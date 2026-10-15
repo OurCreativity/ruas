@@ -168,4 +168,43 @@ describe("@ruas/mcp McpServer & Tools Integration", () => {
     expect(text).toContain("calculateDiscount");
     expect(text).toContain("Top 10 Central Hubs");
   });
+
+  it("handles analyze_architecture tool and detects cycles/health", async () => {
+    const server = createRuasMcpServer(storage);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tools = (server as any)._registeredTools;
+    const archTool = tools["analyze_architecture"];
+    expect(archTool).toBeDefined();
+
+    const response = await archTool.handler({
+      includeCycles: true,
+      includeOrphans: true,
+      includeCoupling: true,
+    });
+    const text = response.content[0].text;
+
+    expect(text).toContain("Architecture Health Report");
+    expect(text).toContain("Health Score:");
+  });
+
+  it("handles find_path tool between caller and callee", async () => {
+    const server = createRuasMcpServer(storage);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tools = (server as any)._registeredTools;
+    const pathTool = tools["find_path"];
+    expect(pathTool).toBeDefined();
+
+    const response = await pathTool.handler({
+      fromSymbol: "checkoutOrder",
+      toSymbol: "calculateDiscount",
+    });
+    const text = response.content[0].text;
+
+    expect(text).toContain("Shortest Dependency Path");
+    expect(text).toContain("checkoutOrder");
+    expect(text).toContain("calculateDiscount");
+    expect(text).toContain("Cumulative Bayesian Confidence");
+  });
 });

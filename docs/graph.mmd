@@ -1,0 +1,185 @@
+graph TD
+  %% Ruas Code Intelligence Graph (Ruas Project)
+  classDef func fill:#06B6D4,stroke:#0891B2,color:#fff,stroke-width:2px;
+  classDef cls fill:#8B5CF6,stroke:#7C3AED,color:#fff,stroke-width:2px;
+  classDef route fill:#F43F5E,stroke:#E11D48,color:#fff,stroke-width:2px;
+  classDef meth fill:#10B981,stroke:#059669,color:#fff,stroke-width:2px;
+  classDef def fill:#334155,stroke:#475569,color:#fff,stroke-width:1px;
+  subgraph unresolved_nodes_get["unresolved:nodes:get"]
+    97388c6a8a92fb37164ac361(["map()"]):::func
+    8eb4b29118b24df46bd017e9["getDatabase()"]:::meth
+    919f00b4b131c6b83478cd9e["mapNodeRecord()"]:::meth
+    c19dd995cb70023b965fb38a["getAllEdges()"]:::meth
+    270ca5f7aae355728851aebc["mapEdgeRecord()"]:::meth
+    b2b9be185307b9576b465b88["getAllFiles()"]:::meth
+    2687a21aeec456793a89ad35["getAllNodes()"]:::meth
+  end
+  subgraph err_maperr_frompromise["err:maperr:frompromise"]
+    76bd81ba8d56b397566a4bcb(["ok()"]):::func
+    512a65acf99b5f948f8218da(["err()"]):::func
+  end
+  subgraph constructor_createfileid_normalizepath["constructor:createfileid:normalizepath"]
+    241f3c4069edad8aff639b23(["normalizePath()"]):::func
+    0f673d576b6f3ea6ff8e1460(["createFileId()"]):::func
+  end
+  subgraph extract_create_node["extract:create:node"]
+    841f9994913fd19b7fb13f77(["createNodeId()"]):::func
+    fbeea2757ced9b9e2285f6c4(["splitIdentifierTokens()"]):::func
+    cd601071094b4b3f3ac9a27f["findLeadingDocComment()"]:::meth
+    0186fc995d84a528b2cc3099["getFunctionSignature()"]:::meth
+    01c4d5e87acabec08bcc825a["visitNode()"]:::meth
+  end
+  subgraph merkle_directory_hashes["merkle:directory:hashes"]
+    7fb031c9124dd2de54feefdd["hashContent()"]:::meth
+    c86137b107de20fb7c46fddb["runIndex()"]:::meth
+    5d27e8eb739821c18d7142c1["hashFile()"]:::meth
+    f0d2c369e6cb3d9b8dcc7772["detectDirtySet()"]:::meth
+  end
+  subgraph rule_candidate_ambiguous["rule:candidate:ambiguous"]
+    d646617aac82a0ad447ccfd6(["createEdgeId()"]):::func
+    bc627679d38b0459a842f464["resolveAll()"]:::meth
+  end
+  subgraph init_applymigrations_apply["init:applymigrations:apply"]
+    9338a89a4e485a46e4d4697b(["applyMigrations()"]):::func
+    ba5568038d5e90446302c685["init()"]:::meth
+  end
+  subgraph stop_start_filewatcher["stop:start:filewatcher"]
+    5ec8fec87ffd3541534a86af["triggerIndex()"]:::meth
+    6d79b0ca9fba66a18a6b7318["scheduleReindex()"]:::meth
+  end
+  subgraph remove_stem_removeprefix["remove:stem:removeprefix"]
+    1e7996ed5ea75520ff106257["stem()"]:::meth
+    751d6cd1574cfb23775b0970["expandQuery()"]:::meth
+    88e50fdef5154a56d101d74c["removeParticle()"]:::meth
+    efc55c78a7626abc933f247a["removePossessive()"]:::meth
+    e9f2a4ed431191e01699a4b2["removeSuffix()"]:::meth
+    37152c528c2b1a52dd0f78be["removePrefix()"]:::meth
+  end
+  subgraph init_get_grammarloader["init:get:grammarloader"]
+    73c7f1c0a5ae64c716b94a4f["init()"]:::meth
+    99fcb495a8afb3bb68114a30["getWasmDir()"]:::meth
+  end
+  subgraph similarity_generatetrigrams_trigrams["similarity:generatetrigrams:trigrams"]
+    5973c3220ce3ac36749cdbd4["generateTrigrams()"]:::meth
+    cd4c1d510cfc97acef3e01a5["similarity()"]:::meth
+  end
+  subgraph init_parsefile_parse["init:parsefile:parse"]
+    7ecd9496e25d188325ed9fb2["init()"]:::meth
+  end
+  subgraph header_items_param["header:items:param"]
+    c21a649bfdd5b451c77593d9["estimateTokens()"]:::meth
+    dd401416cb1bd376958e9f59["assemble()"]:::meth
+  end
+  subgraph html_graph_startgraphserver["html:graph:startgraphserver"]
+    cfe6e3220fd56ee96faaad96(["buildGraphPayload()"]):::func
+  end
+  subgraph extract_phpextractor_php["extract:phpextractor:php"]
+    4b8e37c170f279aaabf1a621["findLeadingDocComment()"]:::meth
+    a53d724386ae43aafcddcb5d["visitNode()"]:::meth
+  end
+  subgraph ari_adjusted_rand["ari:adjusted:rand"]
+    2c5ad113fdb25f4077528b2c["pseudoRandom()"]:::meth
+    558be46851d30b9c168858c5["detect()"]:::meth
+  end
+  subgraph shutdown_close_clean["shutdown:close:clean"]
+    672fb31a66b09a1bc214be33["close()"]:::meth
+  end
+  subgraph communities_labelcommunities_label["communities:labelcommunities:label"]
+    16637fa077819aa6f41cc4ae["labelCommunities()"]:::meth
+  end
+  subgraph mermaid_sanitize_exportmermaidfile["mermaid:sanitize:exportmermaidfile"]
+    3a6b3a0ff34a186526eb12ad(["sanitize()"]):::func
+    b140afd6112ffaa745fd6e7d(["generateMermaidGraph()"]):::func
+  end
+  subgraph compute_personalizedpagerank_personalized["compute:personalizedpagerank:personalized"]
+    ed73082033b16ad507130d7f["compute()"]:::meth
+  end
+  subgraph verifysignature_verify_processqrissettlement["verifysignature:verify:processqrissettlement"]
+    8e159a5a22bafadb31b5520a(["verifySignature()"]):::func
+  end
+  subgraph normal_pairedwilcoxonsignedranktest_paired["normal:pairedwilcoxonsignedranktest:paired"]
+    aa070a0ef027b5d797ff6b95(["normalCdf()"]):::func
+  end
+  subgraph tarjan_strongly_connected["tarjan:strongly:connected"]
+    6c3e5fe4205eace8d43f1892(["strongConnect()"]):::func
+    70e6844f415789e27e46176f["detectCycles()"]:::meth
+  end
+  subgraph search_retrievalpipeline_pipeline["search:retrievalpipeline:pipeline"]
+    7128619585e28da9d93998e0["search()"]:::meth
+  end
+  subgraph walk_filewalker_constructor["walk:filewalker:constructor"]
+    13db5a749678dd284a9aa01d["detectLanguage()"]:::meth
+  end
+  subgraph dot_sanitize_generatedotgraph["dot:sanitize:generatedotgraph"]
+    78c9300f587f90e0506342cb(["generateDotGraph()"]):::func
+  end
+  subgraph extract_extractimport_extractcall["extract:extractimport:extractcall"]
+    cc6ba390627a85add86991bc["extractDocstring()"]:::meth
+  end
+  subgraph finds_dependency_health["finds:dependency:health"]
+    d82399a4791e41df1d309f22["calculateHealth()"]:::meth
+    f543a34d2ceef76164f9170c["detectOrphans()"]:::meth
+  end
+  subgraph param_fuse_system["param:fuse:system"]
+    a24153d31bb8fb8dadfb8789["fuse()"]:::meth
+  end
+  0f673d576b6f3ea6ff8e1460 --> |calls (89%)| 241f3c4069edad8aff639b23
+  841f9994913fd19b7fb13f77 --> |calls (89%)| 241f3c4069edad8aff639b23
+  97388c6a8a92fb37164ac361 --> |calls (89%)| 76bd81ba8d56b397566a4bcb
+  c86137b107de20fb7c46fddb --> |calls (75%)| f0d2c369e6cb3d9b8dcc7772
+  c86137b107de20fb7c46fddb --> |calls (75%)| 7fb031c9124dd2de54feefdd
+  c86137b107de20fb7c46fddb --> |calls (75%)| 0f673d576b6f3ea6ff8e1460
+  5d27e8eb739821c18d7142c1 --> |calls (89%)| 7fb031c9124dd2de54feefdd
+  f0d2c369e6cb3d9b8dcc7772 --> |calls (89%)| 5d27e8eb739821c18d7142c1
+  751d6cd1574cfb23775b0970 --> |calls (75%)| 1e7996ed5ea75520ff106257
+  bc627679d38b0459a842f464 --> |calls (75%)| d646617aac82a0ad447ccfd6
+  7128619585e28da9d93998e0 --> |calls (75%)| 751d6cd1574cfb23775b0970
+  7128619585e28da9d93998e0 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  7128619585e28da9d93998e0 --> |calls (75%)| ed73082033b16ad507130d7f
+  7128619585e28da9d93998e0 --> |calls (75%)| a24153d31bb8fb8dadfb8789
+  cd4c1d510cfc97acef3e01a5 --> |calls (89%)| 5973c3220ce3ac36749cdbd4
+  1e7996ed5ea75520ff106257 --> |calls (89%)| 88e50fdef5154a56d101d74c
+  1e7996ed5ea75520ff106257 --> |calls (89%)| efc55c78a7626abc933f247a
+  1e7996ed5ea75520ff106257 --> |calls (89%)| e9f2a4ed431191e01699a4b2
+  1e7996ed5ea75520ff106257 --> |calls (89%)| 37152c528c2b1a52dd0f78be
+  a53d724386ae43aafcddcb5d --> |calls (75%)| 01c4d5e87acabec08bcc825a
+  01c4d5e87acabec08bcc825a --> |calls (75%)| a53d724386ae43aafcddcb5d
+  fbeea2757ced9b9e2285f6c4 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  70e6844f415789e27e46176f --> |contains (99%)| 6c3e5fe4205eace8d43f1892
+  b140afd6112ffaa745fd6e7d --> |contains (99%)| 3a6b3a0ff34a186526eb12ad
+  5ec8fec87ffd3541534a86af --> |calls (89%)| 6d79b0ca9fba66a18a6b7318
+  5ec8fec87ffd3541534a86af --> |calls (75%)| c86137b107de20fb7c46fddb
+  6d79b0ca9fba66a18a6b7318 --> |calls (89%)| 5ec8fec87ffd3541534a86af
+  dd401416cb1bd376958e9f59 --> |calls (89%)| c21a649bfdd5b451c77593d9
+  70e6844f415789e27e46176f --> |calls (75%)| 97388c6a8a92fb37164ac361
+  70e6844f415789e27e46176f --> |calls (89%)| 6c3e5fe4205eace8d43f1892
+  d82399a4791e41df1d309f22 --> |calls (89%)| 70e6844f415789e27e46176f
+  d82399a4791e41df1d309f22 --> |calls (89%)| f543a34d2ceef76164f9170c
+  d82399a4791e41df1d309f22 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  558be46851d30b9c168858c5 --> |calls (89%)| 2c5ad113fdb25f4077528b2c
+  16637fa077819aa6f41cc4ae --> |calls (75%)| 97388c6a8a92fb37164ac361
+  b140afd6112ffaa745fd6e7d --> |calls (75%)| cfe6e3220fd56ee96faaad96
+  b140afd6112ffaa745fd6e7d --> |calls (75%)| 97388c6a8a92fb37164ac361
+  b140afd6112ffaa745fd6e7d --> |calls (89%)| 3a6b3a0ff34a186526eb12ad
+  78c9300f587f90e0506342cb --> |calls (75%)| cfe6e3220fd56ee96faaad96
+  78c9300f587f90e0506342cb --> |calls (75%)| 97388c6a8a92fb37164ac361
+  78c9300f587f90e0506342cb --> |calls (89%)| 3a6b3a0ff34a186526eb12ad
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| b2b9be185307b9576b465b88
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| c19dd995cb70023b965fb38a
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| 558be46851d30b9c168858c5
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| 16637fa077819aa6f41cc4ae
+  cfe6e3220fd56ee96faaad96 --> |calls (75%)| ed73082033b16ad507130d7f
+  73c7f1c0a5ae64c716b94a4f --> |calls (33%)| 7ecd9496e25d188325ed9fb2
+  73c7f1c0a5ae64c716b94a4f --> |calls (33%)| ba5568038d5e90446302c685
+  7ecd9496e25d188325ed9fb2 --> |calls (33%)| 73c7f1c0a5ae64c716b94a4f
+  7ecd9496e25d188325ed9fb2 --> |calls (33%)| ba5568038d5e90446302c685
+  ba5568038d5e90446302c685 --> |calls (75%)| 9338a89a4e485a46e4d4697b
+  b2b9be185307b9576b465b88 --> |calls (89%)| 8eb4b29118b24df46bd017e9
+  b2b9be185307b9576b465b88 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  2687a21aeec456793a89ad35 --> |calls (89%)| 8eb4b29118b24df46bd017e9
+  2687a21aeec456793a89ad35 --> |calls (75%)| 97388c6a8a92fb37164ac361
+  2687a21aeec456793a89ad35 --> |calls (89%)| 919f00b4b131c6b83478cd9e
+  c19dd995cb70023b965fb38a --> |calls (89%)| 8eb4b29118b24df46bd017e9
+  c19dd995cb70023b965fb38a --> |calls (75%)| 97388c6a8a92fb37164ac361
+  c19dd995cb70023b965fb38a --> |calls (89%)| 270ca5f7aae355728851aebc

@@ -228,6 +228,17 @@ export class SqliteStorage implements Storage {
     return rows.map((row) => this.mapNodeRecord(row));
   }
 
+  public async getAllNodes(): Promise<readonly NodeRecord[]> {
+    const db = this.getDatabase();
+    const rows = db
+      .prepare(
+        "SELECT id, file_id, kind, name, qualified_name, start_line, end_line, signature, doc_comment, tokens FROM nodes;",
+      )
+      .all() as readonly Record<string, unknown>[];
+
+    return rows.map((row) => this.mapNodeRecord(row));
+  }
+
   // --- Edges ---
 
   public async upsertEdges(edges: readonly EdgeRecord[]): Promise<void> {

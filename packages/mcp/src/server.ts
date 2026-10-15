@@ -4,6 +4,8 @@ import type { Storage } from "@ruas/store";
 import { registerAskCodeTool } from "./tools/ask-code.js";
 import { registerTraceImpactTool } from "./tools/trace-impact.js";
 import { registerProjectOverviewTool } from "./tools/project-overview.js";
+import { registerAnalyzeArchitectureTool } from "./tools/analyze-architecture.js";
+import { registerFindPathTool } from "./tools/find-path.js";
 
 export interface RuasMcpServerOptions {
   readonly name?: string | undefined;
@@ -22,6 +24,8 @@ export function createRuasMcpServer(
   registerAskCodeTool(server, storage);
   registerTraceImpactTool(server, storage);
   registerProjectOverviewTool(server, storage);
+  registerAnalyzeArchitectureTool(server, storage);
+  registerFindPathTool(server, storage);
 
   return server;
 }

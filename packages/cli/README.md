@@ -103,6 +103,17 @@ ruas index .
 # Check repository graph statistics & health
 ruas status .
 
+# Perform deep architectural audit (cycles, dead code, coupling, health score)
+ruas audit .
+ruas audit . --json
+
+# Trace blast radius and dependency call chain with Bayesian confidence
+ruas trace prosesQRIS .
+ruas trace calculateDiscount --depth 3
+
+# Find shortest dependency/call path between two symbols
+ruas path checkoutOrder calculateDiscount .
+
 # Ask code intelligence with emotional damage roast
 ruas ask "fungsi bayar qris" --roast
 ruas ask "calculate customer discount" --roast
@@ -116,8 +127,11 @@ ruas docgen . --out docs/HANDOVER.md
 # Launch interactive, glassmorphic visual graph explorer in your browser (60 FPS canvas)
 ruas ui . --port 4200
 
-# Export standalone offline HTML graph visualization
+# Export codebase graph in multiple formats: Standalone HTML, Mermaid, Graphviz DOT, or JSON
 ruas export . --html docs/graph.html
+ruas export . --mermaid docs/graph.mmd
+ruas export . --dot docs/graph.dot
+ruas export . --json docs/graph.json
 
 # Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
 ruas mcp .
@@ -127,7 +141,7 @@ ruas mcp .
 
 ## 🤖 AI Agent Integration (MCP Protocol)
 
-Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing 3 tools designed specifically for autonomous AI agents:
+Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **5 state-of-the-art tools** designed specifically for autonomous AI agents:
 
 ### 1. `ask_code`
 Searches code symbols using calibrated multilingual graph retrieval with bounded context payloads.
@@ -139,7 +153,17 @@ Traces the full blast radius and call chain of any function, method, or class.
 - **Inputs:** `symbol` (string), `direction` ("inbound" | "outbound" | "both"), `depth` (number).
 - **Outputs:** Dependent callers, callees, Bayesian edge probabilities with 95% Credible Intervals, and breaking change risk score (`LOW` | `MEDIUM` | `HIGH` | `CRITICAL`).
 
-### 3. `project_overview`
+### 3. `analyze_architecture`
+Performs whole-codebase architectural health analysis, detects circular dependency cycles, flags unreferenced dead code (orphans), and calculates Robert C. Martin package coupling metrics.
+- **Inputs:** `includeCycles` (boolean), `includeOrphans` (boolean), `includeCoupling` (boolean).
+- **Outputs:** Health score (0-100), letter grade, circular cycle chains, dead code list, and subsystem instability ($I$).
+
+### 4. `find_path`
+Finds the shortest directed call and dependency path between any two symbols with step-by-step Bayesian posterior confidence.
+- **Inputs:** `fromSymbol` (string), `toSymbol` (string).
+- **Outputs:** Origin, destination, hop count, path chain with edge kinds, and cumulative probability.
+
+### 5. `project_overview`
 High-level architectural summary of the codebase.
 - **Outputs:** File counts, language breakdown, AST node counts, and top 10 central hubs (symbols with highest in-degree / dependents).
 

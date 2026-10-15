@@ -6,6 +6,7 @@ import {
   TypeScriptExtractor,
 } from "./extractors/ts-extractor.js";
 import { PhpExtractor } from "./extractors/php-extractor.js";
+import { PythonExtractor } from "./extractors/python-extractor.js";
 
 export class CodeParser {
   private parser: Parser | null = null;
@@ -42,6 +43,10 @@ export class CodeParser {
         }
         case "php": {
           const extractor = new PhpExtractor(filePath);
+          return extractor.extract(tree, content);
+        }
+        case "python": {
+          const extractor = new PythonExtractor(filePath);
           return extractor.extract(tree, content);
         }
       }

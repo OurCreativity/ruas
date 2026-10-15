@@ -8,6 +8,9 @@ import {
   exportStandaloneHtml,
   renderGraphHtml,
   startGraphServer,
+  generateMermaidGraph,
+  generateDotGraph,
+  exportJsonGraph,
 } from "../index.js";
 
 describe("@ruas/ui Visual Graph Explorer", () => {
@@ -101,6 +104,26 @@ describe("@ruas/ui Visual Graph Explorer", () => {
     expect(htmlRes.status).toBe(200);
     const text = await htmlRes.text();
     expect(text).toContain("<!DOCTYPE html>");
+
+    // Test Mermaid export
+    const mermaid = await generateMermaidGraph(storage);
+    expect(mermaid).toContain("graph TD");
+    expect(mermaid).toContain("processQrisPayment");
+    expect(mermaid).toContain("calls (95%)");
+
+    // Test DOT export
+    const dot = await generateDotGraph(storage);
+    expect(dot).toContain("digraph CodeGraph");
+    expect(dot).toContain("processQrisPayment");
+
+    // Test JSON export
+    const tmpJson = join(process.cwd(), ".tmp", "test-graph.json");
+    await exportJsonGraph(storage, tmpJson);
+    expect(existsSync(tmpJson)).toBe(true);
+    const savedJson = JSON.parse(readFileSync(tmpJson, "utf-8")) as { projectName: string; architectureHealth: unknown };
+    expect(savedJson.projectName).toBe("Ruas Project");
+    expect(savedJson.architectureHealth).toBeDefined();
+    rmSync(tmpJson, { force: true });
 
     await server.close();
     await storage.close();

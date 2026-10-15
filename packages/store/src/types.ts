@@ -33,6 +33,7 @@ export interface Storage {
   getNodesByFileId(fileId: string): Promise<readonly NodeRecord[]>;
   getNodeById(id: string): Promise<NodeRecord | null>;
   findNodesByName(name: string): Promise<readonly NodeRecord[]>;
+  getAllNodes(): Promise<readonly NodeRecord[]>;
 
   // Edge operations
   upsertEdges(edges: readonly EdgeRecord[]): Promise<void>;
