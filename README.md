@@ -73,16 +73,16 @@ Ruas is structured as a high-performance pnpm workspace with strict boundary dec
 
 #### Option 1: Run instantly with `npx` (No Install Required)
 ```bash
-npx ruas ask "fungsi bayar qris" --roast
+npx @fk0u/ruas ask "fungsi bayar qris" --roast
 ```
 
 #### Option 2: Install globally via `npm` or `pnpm`
 ```bash
-# Global install via npm
-npm install -g ruas
+# Global install via npm (provides 'ruas' command)
+npm install -g @fk0u/ruas
 
 # Or via pnpm
-pnpm add -g ruas
+pnpm add -g @fk0u/ruas
 ```
 
 #### Option 3: Local Development (from source)
