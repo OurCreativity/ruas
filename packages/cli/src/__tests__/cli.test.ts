@@ -28,7 +28,7 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
 
   it("prints version flag correctly", () => {
     const output = execSync(`node ${CLI_PATH} --version`).toString().trim();
-    expect(output).toBe("1.1.0");
+    expect(output).toBe("1.1.1");
   }, 30_000);
 
   it("indexes fixture directory with --json", () => {

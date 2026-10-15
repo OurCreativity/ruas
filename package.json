@@ -1,6 +1,6 @@
 {
   "name": "ruas-monorepo",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "private": true,
   "description": "Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval",
   "type": "module",

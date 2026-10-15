@@ -23,7 +23,7 @@ const program = new Command();
 program
   .name("ruas")
   .description("Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval")
-  .version("1.1.0");
+  .version("1.1.1");
 
 // --- ruas index ---
 program
