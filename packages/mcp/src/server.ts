@@ -6,10 +6,13 @@ import { registerTraceImpactTool } from "./tools/trace-impact.js";
 import { registerProjectOverviewTool } from "./tools/project-overview.js";
 import { registerAnalyzeArchitectureTool } from "./tools/analyze-architecture.js";
 import { registerFindPathTool } from "./tools/find-path.js";
+import { registerSaveContextTool } from "./tools/save-context.js";
+import { registerRecallContextTool } from "./tools/recall-context.js";
 
 export interface RuasMcpServerOptions {
   readonly name?: string | undefined;
   readonly version?: string | undefined;
+  readonly projectRoot?: string | undefined;
 }
 
 export function createRuasMcpServer(
@@ -18,14 +21,18 @@ export function createRuasMcpServer(
 ): McpServer {
   const server = new McpServer({
     name: options?.name ?? "ruas-code-intelligence",
-    version: options?.version ?? "0.1.0",
+    version: options?.version ?? "1.0.0",
   });
+
+  const root = options?.projectRoot ?? ".";
 
   registerAskCodeTool(server, storage);
   registerTraceImpactTool(server, storage);
   registerProjectOverviewTool(server, storage);
   registerAnalyzeArchitectureTool(server, storage);
   registerFindPathTool(server, storage);
+  registerSaveContextTool(server, storage, root);
+  registerRecallContextTool(server, storage, root);
 
   return server;
 }

@@ -191,4 +191,39 @@ export interface KPathResult {
   readonly found: boolean;
 }
 
+export interface VibeMemoryRecord {
+  readonly id: string;
+  readonly timestamp: number;
+  readonly intent: string;
+  readonly activeFiles: readonly string[];
+  readonly architecturalNotes: string;
+  readonly pendingDecisions: readonly string[];
+  readonly sessionTag?: string | undefined;
+  readonly symbolFocus?: readonly string[] | undefined;
+  readonly tokenDensityScore?: number | undefined;
+}
+
+export interface AiNativeContextManifest {
+  readonly schemaVersion: "1.0.0";
+  readonly generatedAt: string;
+  readonly targetProject: string;
+  readonly totalSymbols: number;
+  readonly totalEdges: number;
+  readonly godSymbols: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly kind: string;
+    readonly inDegree: number;
+    readonly outDegree: number;
+  }[];
+  readonly criticalTrajectories: readonly {
+    readonly source: string;
+    readonly target: string;
+    readonly pathSignature: string;
+    readonly bayesianConfidence: number;
+  }[];
+  readonly activeVibeMemory?: VibeMemoryRecord | undefined;
+  readonly rawMarkdown: string;
+}
+
 

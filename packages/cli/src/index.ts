@@ -9,7 +9,7 @@ import { FileWatcher, Indexer } from "@ruas/indexer";
 import { SymbolResolver } from "@ruas/resolver";
 import { RetrievalPipeline, ArchitectureAnalyzer } from "@ruas/rank";
 import { runStdioServer } from "@ruas/mcp";
-import { HandoverGenerator } from "@ruas/docgen";
+import { HandoverGenerator, AiNativeGenerator } from "@ruas/docgen";
 import {
   startGraphServer,
   exportStandaloneHtml,
@@ -23,7 +23,7 @@ const program = new Command();
 program
   .name("ruas")
   .description("Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval")
-  .version("1.0.0");
+  .version("1.1.0");
 
 // --- ruas index ---
 program
@@ -809,6 +809,208 @@ program
       await storage.close();
       const message = error instanceof Error ? error.message : String(error);
       console.error(pc.red(`\n✖ Error tracing symbol: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+// --- ruas vibe ---
+const vibeCmd = program
+  .command("vibe")
+  .description("Manage AI-native working memory and vibe coding context checkpoints ('Bahasa Ibu AI')");
+
+vibeCmd
+  .command("save")
+  .description("Checkpoint current vibe coding state, active files, and invariants into AI mother tongue (RUAS_CONTEXT.md)")
+  .argument("<intent>", "Description of the current task or vibe coding goal")
+  .argument("[path]", "Path to project directory", ".")
+  .option("-f, --files <files...>", "Active files being modified")
+  .option("-n, --notes <notes>", "Architectural invariants or rules the AI must obey", "")
+  .option("-t, --tag <tag>", "Session classification tag")
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(async (intent: string, targetPath: string, options: { files?: string[]; notes?: string; tag?: string; db?: string; json?: boolean }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+    if (!existsSync(dbPath)) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: "Database not found. Run 'ruas index' first." }, null, 2));
+      } else {
+        console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      }
+      return;
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    try {
+      await storage.init();
+      const nodes = await storage.getAllNodes();
+      const edges = await storage.getAllEdges();
+
+      const memory = {
+        id: `vibe-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+        timestamp: Date.now(),
+        intent,
+        activeFiles: options.files ?? [],
+        architecturalNotes: options.notes ?? "",
+        pendingDecisions: [],
+        sessionTag: options.tag,
+      };
+
+      await storage.saveVibeMemory(memory);
+      await storage.close();
+
+      const manifest = AiNativeGenerator.generate({
+        projectRoot: rootDir,
+        nodes,
+        edges,
+        vibeMemory: memory,
+      });
+
+      const ruasMemoryDir = join(rootDir, ".ruas", "memory");
+      if (!existsSync(ruasMemoryDir)) {
+        mkdirSync(ruasMemoryDir, { recursive: true });
+      }
+      writeFileSync(join(ruasMemoryDir, "latest.md"), manifest.rawMarkdown, "utf-8");
+      const contextPath = join(rootDir, "RUAS_CONTEXT.md");
+      writeFileSync(contextPath, manifest.rawMarkdown, "utf-8");
+
+      if (options.json) {
+        console.log(JSON.stringify({ memory, contextPath }, null, 2));
+        return;
+      }
+
+      console.log(pc.cyan(`\n🧠 Ruas Vibe Memory Checkpointed ("Bahasa Ibu AI")`));
+      console.log(`  ${pc.bold("Intent:")}          ${pc.green(intent)}`);
+      console.log(`  ${pc.bold("Memory ID:")}       ${pc.dim(memory.id)}`);
+      if (options.tag) console.log(`  ${pc.bold("Session Tag:")}     ${pc.cyan(options.tag)}`);
+      if (options.files && options.files.length > 0) {
+        console.log(`  ${pc.bold("Active Files:")}    ${options.files.join(", ")}`);
+      }
+      console.log(`  ${pc.bold("AI Context File:")} ${pc.green(contextPath)}`);
+      console.log(`  ${pc.dim("AI agents (Cursor/Claude/Antigravity) can now resume without re-scanning.")}\n`);
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error saving vibe memory: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+vibeCmd
+  .command("recall")
+  .description("Recall the latest vibe coding memory and AI-native graph context")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--full", "Print full AI-native manifest including compact AST signatures", false)
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(async (targetPath: string, options: { full?: boolean; db?: string; json?: boolean }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+    if (!existsSync(dbPath)) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: "Database not found. Run 'ruas index' first." }, null, 2));
+      } else {
+        console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      }
+      return;
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    try {
+      await storage.init();
+      const latest = await storage.getLatestVibeMemory();
+      const nodes = await storage.getAllNodes();
+      const edges = await storage.getAllEdges();
+      await storage.close();
+
+      if (!latest) {
+        if (options.json) {
+          console.log(JSON.stringify({ message: "No vibe memory found" }, null, 2));
+        } else {
+          console.log(pc.yellow(`\n⚠ No vibe memory checkpoints found in this project.\n`));
+        }
+        return;
+      }
+
+      if (options.full) {
+        const manifest = AiNativeGenerator.generate({
+          projectRoot: rootDir,
+          nodes,
+          edges,
+          vibeMemory: latest,
+        });
+        console.log(manifest.rawMarkdown);
+        return;
+      }
+
+      if (options.json) {
+        console.log(JSON.stringify(latest, null, 2));
+        return;
+      }
+
+      console.log(pc.cyan(`\n🧠 Ruas Recalled Vibe Coding Memory`));
+      console.log(`  ${pc.bold("Last Intent:")}      ${pc.green(latest.intent)}`);
+      console.log(`  ${pc.bold("Timestamp:")}        ${pc.dim(new Date(latest.timestamp).toLocaleString())}`);
+      if (latest.sessionTag) console.log(`  ${pc.bold("Session Tag:")}      ${pc.cyan(latest.sessionTag)}`);
+      console.log(`  ${pc.bold("Active Files:")}     ${latest.activeFiles.length > 0 ? latest.activeFiles.join(", ") : pc.dim("none")}`);
+      if (latest.architecturalNotes) {
+        console.log(`  ${pc.bold("Invariants:")}       ${latest.architecturalNotes}`);
+      }
+      console.log();
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error recalling vibe memory: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+vibeCmd
+  .command("sync")
+  .description("Synchronize and regenerate RUAS_CONTEXT.md in AI mother tongue dialect")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--db <path>", "Custom database path")
+  .action(async (targetPath: string, options: { db?: string }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+    if (!existsSync(dbPath)) {
+      console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      return;
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    try {
+      await storage.init();
+      const latest = await storage.getLatestVibeMemory();
+      const nodes = await storage.getAllNodes();
+      const edges = await storage.getAllEdges();
+      await storage.close();
+
+      const manifest = AiNativeGenerator.generate({
+        projectRoot: rootDir,
+        nodes,
+        edges,
+        vibeMemory: latest ?? undefined,
+      });
+
+      const ruasMemoryDir = join(rootDir, ".ruas", "memory");
+      if (!existsSync(ruasMemoryDir)) {
+        mkdirSync(ruasMemoryDir, { recursive: true });
+      }
+      writeFileSync(join(ruasMemoryDir, "latest.md"), manifest.rawMarkdown, "utf-8");
+      const contextPath = join(rootDir, "RUAS_CONTEXT.md");
+      writeFileSync(contextPath, manifest.rawMarkdown, "utf-8");
+
+      console.log(pc.green(`\n✓ Synchronized AI-Native Mother Tongue context:`));
+      console.log(`  • ${pc.white(contextPath)}`);
+      console.log(`  • ${pc.dim(join(ruasMemoryDir, "latest.md"))}\n`);
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error syncing context: ${message}\n`));
       process.exit(1);
     }
   });

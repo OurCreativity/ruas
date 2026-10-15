@@ -7,6 +7,7 @@ import type {
   NodeRecord,
   SupportedLanguage,
   UnresolvedRefRecord,
+  VibeMemoryRecord,
 } from "@ruas/core";
 import { applyMigrations } from "./migrations.js";
 import type { FtsSearchResult, Storage, StorageStats } from "./types.js";
@@ -452,4 +453,82 @@ export class SqliteStorage implements Storage {
       evidenceJson: row["evidence_json"] ? String(row["evidence_json"]) : null,
     };
   }
+
+  // --- Vibe Memory & AI Working Context ---
+
+  public async saveVibeMemory(memory: VibeMemoryRecord): Promise<void> {
+    const db = this.getDatabase();
+    const stmt = db.prepare(`
+      INSERT OR REPLACE INTO vibe_memories (
+        id, timestamp, intent, active_files, architectural_notes, pending_decisions, session_tag, symbol_focus
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+    `);
+
+    stmt.run(
+      memory.id,
+      memory.timestamp,
+      memory.intent,
+      JSON.stringify(memory.activeFiles),
+      memory.architecturalNotes,
+      JSON.stringify(memory.pendingDecisions),
+      memory.sessionTag ?? null,
+      memory.symbolFocus ? JSON.stringify(memory.symbolFocus) : null,
+    );
+  }
+
+  public async getLatestVibeMemory(): Promise<VibeMemoryRecord | null> {
+    const db = this.getDatabase();
+    const row = db
+      .prepare("SELECT * FROM vibe_memories ORDER BY timestamp DESC LIMIT 1;")
+      .get() as Record<string, unknown> | undefined;
+
+    if (!row) return null;
+    return this.mapVibeMemoryRecord(row);
+  }
+
+  public async getAllVibeMemories(limit = 20): Promise<readonly VibeMemoryRecord[]> {
+    const db = this.getDatabase();
+    const rows = db
+      .prepare("SELECT * FROM vibe_memories ORDER BY timestamp DESC LIMIT ?;")
+      .all(limit) as Record<string, unknown>[];
+
+    return rows.map((r) => this.mapVibeMemoryRecord(r));
+  }
+
+  private mapVibeMemoryRecord(row: Record<string, unknown>): VibeMemoryRecord {
+    let activeFiles: string[] = [];
+    try {
+      activeFiles = JSON.parse(String(row["active_files"] || "[]"));
+    } catch {
+      activeFiles = [];
+    }
+
+    let pendingDecisions: string[] = [];
+    try {
+      pendingDecisions = JSON.parse(String(row["pending_decisions"] || "[]"));
+    } catch {
+      pendingDecisions = [];
+    }
+
+    let symbolFocus: string[] | undefined = undefined;
+    if (row["symbol_focus"]) {
+      try {
+        symbolFocus = JSON.parse(String(row["symbol_focus"]));
+      } catch {
+        symbolFocus = undefined;
+      }
+    }
+
+    return {
+      id: String(row["id"]),
+      timestamp: Number(row["timestamp"]),
+      intent: String(row["intent"]),
+      activeFiles,
+      architecturalNotes: String(row["architectural_notes"] || ""),
+      pendingDecisions,
+      sessionTag: row["session_tag"] ? String(row["session_tag"]) : undefined,
+      symbolFocus,
+    };
+  }
 }
+

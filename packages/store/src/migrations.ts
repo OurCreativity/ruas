@@ -100,6 +100,22 @@ CREATE VIRTUAL TABLE IF NOT EXISTS nodes_fts USING fts5(
 );
 `;
 
+export const SCHEMA_V2 = `
+-- Vibe coding working memory and AI-native context checkpoints
+CREATE TABLE IF NOT EXISTS vibe_memories (
+  id TEXT PRIMARY KEY,
+  timestamp INTEGER NOT NULL,
+  intent TEXT NOT NULL,
+  active_files TEXT NOT NULL,
+  architectural_notes TEXT NOT NULL,
+  pending_decisions TEXT NOT NULL,
+  session_tag TEXT,
+  symbol_focus TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_vibe_timestamp ON vibe_memories(timestamp DESC);
+`;
+
 export function applyMigrations(db: {
   exec(sql: string): void;
   prepare(sql: string): {
@@ -117,6 +133,14 @@ export function applyMigrations(db: {
     db.exec(SCHEMA_V1);
     db.prepare("INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);").run(
       1,
+      Date.now(),
+    );
+  }
+
+  if (currentVersion < 2) {
+    db.exec(SCHEMA_V2);
+    db.prepare("INSERT INTO schema_migrations (version, applied_at) VALUES (?, ?);").run(
+      2,
       Date.now(),
     );
   }

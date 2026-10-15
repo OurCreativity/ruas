@@ -28,7 +28,7 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
 
   it("prints version flag correctly", () => {
     const output = execSync(`node ${CLI_PATH} --version`).toString().trim();
-    expect(output).toBe("1.0.0");
+    expect(output).toBe("1.1.0");
   }, 30_000);
 
   it("indexes fixture directory with --json", () => {
@@ -125,5 +125,18 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
   it("finds shortest path with path command", () => {
     const output = execSync(`node ${CLI_PATH} path prosesQRIS prosesQRIS ${CLI_FIXTURE}`).toString();
     expect(output).toContain("Ruas Shortest Path Traversal");
+  }, 30_000);
+
+  it("checkpoints and recalls vibe coding memory with vibe command", () => {
+    const saveOut = execSync(
+      `node ${CLI_PATH} vibe save "Testing Vibe Coding Flow" ${CLI_FIXTURE} -f pembayaran.ts -n "Keep QRIS atomic" --tag test-vibe`,
+    ).toString();
+    expect(saveOut).toContain("Ruas Vibe Memory Checkpointed");
+    expect(saveOut).toContain("RUAS_CONTEXT.md");
+
+    const recallOut = execSync(`node ${CLI_PATH} vibe recall ${CLI_FIXTURE}`).toString();
+    expect(recallOut).toContain("Ruas Recalled Vibe Coding Memory");
+    expect(recallOut).toContain("Testing Vibe Coding Flow");
+    expect(recallOut).toContain("Keep QRIS atomic");
   }, 30_000);
 });

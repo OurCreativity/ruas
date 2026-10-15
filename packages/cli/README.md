@@ -139,6 +139,15 @@ ruas export . --mermaid docs/graph.mmd
 ruas export . --dot docs/graph.dot
 ruas export . --json docs/graph.json
 
+# Checkpoint working memory and vibe coding state into AI Mother Tongue (RUAS_CONTEXT.md)
+ruas vibe save "Refactor payment flow ke QRIS & fix circular dependency" -f src/checkout.ts -n "Jaga transaksi QRIS tetap atomic"
+
+# Recall previous vibe memory & working context to prevent AI amnesia
+ruas vibe recall
+
+# Synchronize and regenerate RUAS_CONTEXT.md for Cursor / Claude / Antigravity
+ruas vibe sync
+
 # Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
 ruas mcp .
 ```
@@ -177,9 +186,31 @@ ruas trace prosesQRIS --dijkstra --depth 3
 
 ---
 
+## 🧠 Vibe Coding Memory & AI Mother Tongue Dialect (`RUAS_CONTEXT.md`)
+
+When developers "vibe code" with AI coding partners (Cursor, Claude Desktop, Antigravity, Cline, Aider), the biggest bottlenecks are **context window amnesia** and **token exhaustion**. Standard tools feed AI raw files with tons of boilerplate implementation fluff, wasting thousands of tokens and causing models to hallucinate.
+
+Ruas introduces a native **AI Mother Tongue Dialect**:
+1. **High Shannon Entropy Format:** Strips verbose syntactic boilerplate, preserving only exact AST signatures, line spans, doc annotations, and Bayesian dependency edges.
+2. **Persistent Vibe Memory:** AI and developers can checkpoint session intent, active files, and architectural invariants (`ruas vibe save` or MCP `save_context`).
+3. **Single Ground Truth File (`RUAS_CONTEXT.md`):** Automatically written to the project root and `.ruas/memory/latest.md`. An incoming AI agent or new session reads this file first and instantly understands the whole codebase without rescanning.
+
+```bash
+# Checkpoint current task and rules
+ruas vibe save "Refactor payment flow to dynamic QRIS" -f src/checkout.ts -n "Keep settlement atomic"
+
+# Recall latest working memory
+ruas vibe recall
+
+# Sync and regenerate RUAS_CONTEXT.md
+ruas vibe sync
+```
+
+---
+
 ## 🤖 AI Agent Integration (MCP Protocol)
 
-Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **5 state-of-the-art tools** designed specifically for autonomous AI agents:
+Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **7 state-of-the-art tools** designed specifically for autonomous AI agents:
 
 ### 1. `ask_code`
 Searches code symbols using calibrated multilingual graph retrieval with bounded context payloads.
@@ -204,6 +235,16 @@ Finds the shortest directed call and dependency path between any two symbols wit
 ### 5. `project_overview`
 High-level architectural summary of the codebase.
 - **Outputs:** File counts, language breakdown, AST node counts, and top 10 central hubs (symbols with highest in-degree / dependents).
+
+### 6. `save_context` (Vibe Memory Checkpoint)
+Enables AI coding agents to persist their working memory, active files, architectural invariants, and pending tasks during vibe coding. Automatically writes `RUAS_CONTEXT.md` in the project root.
+- **Inputs:** `intent` (string), `activeFiles` (string[]), `architecturalNotes` (string), `pendingDecisions` (string[]), `sessionTag` (string).
+- **Outputs:** Checkpoint confirmation and synced file locations.
+
+### 7. `recall_context` (LLM Amnesia Prevention)
+Restores previously checkpointed vibe coding memory and working state in the AI-Native mother tongue format, preventing context window truncation and drift.
+- **Inputs:** `includeFullManifest` (boolean), `sessionLimit` (number).
+- **Outputs:** Active intent, open tasks, invariants, and token-dense AST signatures.
 
 ### Connecting to Claude Desktop / Cursor
 

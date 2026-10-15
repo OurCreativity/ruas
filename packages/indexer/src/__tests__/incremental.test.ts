@@ -168,5 +168,5 @@ export function hitungDiskonV3(amount: number): number {
       watcher.stop();
       await storage.close();
     }
-  });
+  }, 15_000);
 });

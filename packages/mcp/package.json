@@ -18,6 +18,7 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@ruas/core": "workspace:*",
+    "@ruas/docgen": "workspace:*",
     "@ruas/indexer": "workspace:*",
     "@ruas/rank": "workspace:*",
     "@ruas/resolver": "workspace:*",

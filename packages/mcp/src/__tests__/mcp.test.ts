@@ -226,4 +226,36 @@ describe("@ruas/mcp McpServer & Tools Integration", () => {
     expect(text).toContain("Shortest Paths");
     expect(text).toContain("Dijkstra");
   });
+
+  it("handles save_context and recall_context vibe memory tools", async () => {
+    const server = createRuasMcpServer(storage);
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const tools = (server as any)._registeredTools;
+    const saveTool = tools["save_context"];
+    const recallTool = tools["recall_context"];
+
+    expect(saveTool).toBeDefined();
+    expect(recallTool).toBeDefined();
+
+    const saveRes = await saveTool.handler({
+      intent: "Refactoring payment gateway to support dynamic QRIS",
+      activeFiles: ["src/checkout.ts"],
+      architecturalNotes: "Ensure webhook HMAC verification runs before database transaction.",
+      pendingDecisions: ["Test idempotency key"],
+      sessionTag: "payment-qris",
+      syncContextFile: false,
+    });
+
+    expect(saveRes.content[0].text).toContain("Checkpointed Successfully");
+    expect(saveRes.content[0].text).toContain("Refactoring payment gateway");
+
+    const recallRes = await recallTool.handler({
+      includeFullManifest: true,
+    });
+
+    expect(recallRes.content[0].text).toContain("ruas_dialect: ai-native/v1");
+    expect(recallRes.content[0].text).toContain("Refactoring payment gateway");
+    expect(recallRes.content[0].text).toContain("Ensure webhook HMAC verification");
+  });
 });

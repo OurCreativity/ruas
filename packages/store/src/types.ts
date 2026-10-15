@@ -52,6 +52,11 @@ export interface Storage {
   // Full-Text Search
   searchFts(query: string, limit?: number): Promise<readonly FtsSearchResult[]>;
 
+  // Vibe Memory & Working Context
+  saveVibeMemory(memory: import("@ruas/core").VibeMemoryRecord): Promise<void>;
+  getLatestVibeMemory(): Promise<import("@ruas/core").VibeMemoryRecord | null>;
+  getAllVibeMemories(limit?: number): Promise<readonly import("@ruas/core").VibeMemoryRecord[]>;
+
   // Statistics
   getStats(): Promise<StorageStats>;
 }
