@@ -139,4 +139,25 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     expect(recallOut).toContain("Testing Vibe Coding Flow");
     expect(recallOut).toContain("Keep QRIS atomic");
   }, 30_000);
+
+  it("performs systematic fuzzy matching with fuzzy command", () => {
+    const output = execSync(`node ${CLI_PATH} fuzzy pQRIS ${CLI_FIXTURE} --json`).toString();
+    const jsonMatch = output.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+    expect(data.totalMatches).toBeGreaterThan(0);
+    expect(data.candidates.some((c: any) => c.node.name === "prosesQRIS")).toBe(true);
+  }, 30_000);
+
+  it("queries code via ask command with --fuzzy", () => {
+    const output = execSync(`node ${CLI_PATH} ask "pQRIS" ${CLI_FIXTURE} --fuzzy`).toString();
+    expect(output).toContain("prosesQRIS");
+    expect(output).toContain("Fuzzy Risk");
+  }, 30_000);
+
+  it("performs architectural audit with --fuzzy", () => {
+    const output = execSync(`node ${CLI_PATH} audit ${CLI_FIXTURE} --fuzzy`).toString();
+    expect(output).toContain("Fuzzy Defuzzified");
+    expect(output).toContain("Fuzzy Profile");
+  }, 30_000);
 });

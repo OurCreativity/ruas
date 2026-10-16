@@ -154,6 +154,7 @@ export interface ArchitectureHealthReport {
     readonly degree: number;
     readonly role: string;
   }[];
+  readonly fuzzyEvaluation?: FuzzyEvaluationResult | undefined;
 }
 
 export interface PathResult {
@@ -226,4 +227,40 @@ export interface AiNativeContextManifest {
   readonly rawMarkdown: string;
 }
 
+/**
+ * Systematic Fuzzy Logic Types and Models (Zadeh 1965)
+ */
+export type FuzzyMembershipFunction = "trimf" | "trapmf" | "sigmf" | "gaussmf";
 
+export interface FuzzySetDefinition {
+  readonly name: string;
+  readonly mf: FuzzyMembershipFunction;
+  readonly params: readonly number[];
+}
+
+export interface LinguisticVariable {
+  readonly name: string;
+  readonly min: number;
+  readonly max: number;
+  readonly sets: readonly FuzzySetDefinition[];
+}
+
+export type FuzzyLinguisticGrade = "Minimal" | "Low" | "Moderate" | "High" | "Critical";
+
+export interface FuzzyEvaluationResult {
+  readonly rawScore: number; // Defuzzified continuous value in [0, 100]
+  readonly crispGrade: FuzzyLinguisticGrade;
+  readonly linguisticDistribution: Record<string, number>; // degrees of truth in [0, 1]
+  readonly rationale: string;
+}
+
+export interface FuzzyMatchCandidate {
+  readonly node: NodeRecord;
+  readonly score: number; // Overall fuzzy similarity in [0, 1]
+  readonly details: {
+    readonly editDistanceSim: number;
+    readonly trigramSim: number;
+    readonly acronymMatch: boolean;
+    readonly prefixBonus: number;
+  };
+}

@@ -1,11 +1,15 @@
 import {
   type EdgeRecord,
   type NodeRecord,
+  type FuzzyEvaluationResult,
+  type FuzzyMatchCandidate,
   computeBetaCredibleInterval,
 } from "@ruas/core";
 import { GlossaryExpander } from "@ruas/nlp";
 import type { Storage } from "@ruas/store";
 import { TrigramMatcher } from "./trigram-matcher.js";
+import { FuzzyMatcher } from "./fuzzy-matcher.js";
+import { FuzzyInferenceEngine } from "./fuzzy-inference.js";
 import { PersonalizedPageRank } from "./personalized-pagerank.js";
 import { ReciprocalRankFusion } from "./reciprocal-rank-fusion.js";
 
@@ -16,6 +20,7 @@ export interface RetrievedSymbol {
   readonly outboundEdges: readonly EdgeRecord[];
   readonly inboundEdges: readonly EdgeRecord[];
   readonly riskLevel: "low" | "medium" | "high" | "critical";
+  readonly fuzzyEvaluation?: FuzzyEvaluationResult | undefined;
   readonly roastComment?: string | undefined;
 }
 
@@ -57,7 +62,7 @@ export class RetrievalPipeline {
     const symbolLexicalNodes = allLexicalNodes.filter((n) => n.kind !== "file");
     const lexicalNodes = symbolLexicalNodes.length > 0 ? symbolLexicalNodes : allLexicalNodes;
 
-    // 3. Trigram Fuzzy Search (across lexical symbols)
+    // 3. Systematic Fuzzy Matching (Acronyms, Damerau-Levenshtein, Trigrams, Sub-words)
     const STOP_TOKENS = new Set([
       "fungsi",
       "function",
@@ -69,22 +74,38 @@ export class RetrievalPipeline {
       "cek",
       "format",
     ]);
-    const fuzzyCandidates: { node: NodeRecord; similarity: number }[] = [];
+
+    // Gather candidate nodes for fuzzy matching: if lexical search was empty or sparse, pool all non-file nodes
+    let fuzzySearchSpace = lexicalNodes;
+    if (lexicalNodes.length < 5) {
+      const allDbNodes = await this.storage.getAllNodes();
+      const nonFileNodes = allDbNodes.filter((n) => n.kind !== "file");
+      const combined = new Map<string, NodeRecord>();
+      for (const n of lexicalNodes) combined.set(n.id, n);
+      for (const n of nonFileNodes) combined.set(n.id, n);
+      fuzzySearchSpace = Array.from(combined.values());
+    }
+
+    const fuzzyCandidates: FuzzyMatchCandidate[] = [];
     for (const token of expanded.tokens) {
-      if (token.length >= 4 && !STOP_TOKENS.has(token)) {
-        const matches = TrigramMatcher.matchCandidates(token, lexicalNodes, 0.65);
+      if (token.length >= 2 && !STOP_TOKENS.has(token)) {
+        const matches = FuzzyMatcher.matchCandidates(token, fuzzySearchSpace, {
+          threshold: 0.42,
+          limit: 20,
+        });
         for (const m of matches) {
           fuzzyCandidates.push(m);
         }
       }
     }
-    fuzzyCandidates.sort((a, b) => b.similarity - a.similarity);
-    const trigramNodes: NodeRecord[] = [];
-    const seenTrigram = new Set<string>();
+
+    fuzzyCandidates.sort((a, b) => b.score - a.score);
+    const fuzzyRankedNodes: NodeRecord[] = [];
+    const seenFuzzy = new Set<string>();
     for (const f of fuzzyCandidates) {
-      if (!seenTrigram.has(f.node.id)) {
-        seenTrigram.add(f.node.id);
-        trigramNodes.push(f.node);
+      if (!seenFuzzy.has(f.node.id)) {
+        seenFuzzy.add(f.node.id);
+        fuzzyRankedNodes.push(f.node);
       }
     }
 
@@ -94,7 +115,7 @@ export class RetrievalPipeline {
     for (const n of lexicalNodes) {
       candidateIds.add(n.id);
     }
-    for (const n of trigramNodes) {
+    for (const n of fuzzyRankedNodes) {
       candidateIds.add(n.id);
     }
 
@@ -110,8 +131,14 @@ export class RetrievalPipeline {
     const seeds = new Map<string, number>();
     for (let i = 0; i < lexicalNodes.length; i++) {
       const node = lexicalNodes[i]!;
-      // Seed weight drops with FTS rank position
       seeds.set(node.id, 1.0 / (i + 1));
+    }
+    // Also seed top fuzzy matches if lexical search was dry
+    if (lexicalNodes.length === 0) {
+      for (let i = 0; i < fuzzyRankedNodes.length; i++) {
+        const node = fuzzyRankedNodes[i]!;
+        seeds.set(node.id, 1.0 / (i + 1));
+      }
     }
 
     const pprScores = this.ppr.compute(graphNodeIds, edges, seeds);
@@ -119,7 +146,7 @@ export class RetrievalPipeline {
     for (const n of lexicalNodes) {
       pprNodeMap.set(n.id, n);
     }
-    for (const n of trigramNodes) {
+    for (const n of fuzzyRankedNodes) {
       pprNodeMap.set(n.id, n);
     }
 
@@ -134,20 +161,20 @@ export class RetrievalPipeline {
     // 5. Calibrated Weighted Reciprocal Rank Fusion
     const systems = new Map<string, readonly NodeRecord[]>([
       ["bm25", lexicalNodes],
-      ["trigram", trigramNodes],
+      ["fuzzy", fuzzyRankedNodes],
       ["ppr", pprRankedNodes],
     ]);
 
     const weights = new Map<string, number>([
       ["bm25", 1.0],
+      ["fuzzy", 0.35],
       ["ppr", 0.25],
-      ["trigram", 0.2],
     ]);
 
     const fused = this.rrf.fuse(systems, (n) => n.id, weights);
     const topHits = fused.slice(0, limit);
 
-    // 6. Enrich with edges, confidence, and emotional damage risk
+    // 6. Enrich with edges, confidence, and Mamdani Fuzzy Risk Evaluation
     const symbols: RetrievedSymbol[] = [];
 
     for (const hit of topHits) {
@@ -159,16 +186,14 @@ export class RetrievalPipeline {
         ranksObj[sys] = r;
       }
 
-      // Compute blast radius risk level
-      const totalDependents = inbound.length;
-      let riskLevel: RetrievedSymbol["riskLevel"] = "low";
-      if (totalDependents > 10) {
-        riskLevel = "critical";
-      } else if (totalDependents > 5) {
-        riskLevel = "high";
-      } else if (totalDependents > 2) {
-        riskLevel = "medium";
-      }
+      // Compute blast radius risk level using Mamdani Fuzzy Inference System
+      const fuzzyEvaluation = FuzzyInferenceEngine.evaluateSymbolRisk(
+        hit.item,
+        inbound.length,
+        outbound.length,
+      );
+
+      const riskLevel = fuzzyEvaluation.crispGrade.toLowerCase() as RetrievedSymbol["riskLevel"];
 
       let roastComment: string | undefined = undefined;
       if (enableRoast) {
@@ -177,6 +202,7 @@ export class RetrievalPipeline {
           inbound.length,
           outbound.length,
           riskLevel,
+          fuzzyEvaluation.rawScore,
         );
       }
 
@@ -187,6 +213,7 @@ export class RetrievalPipeline {
         outboundEdges: outbound,
         inboundEdges: inbound,
         riskLevel,
+        fuzzyEvaluation,
         roastComment,
       });
     }
@@ -207,16 +234,18 @@ export class RetrievalPipeline {
     inboundCount: number,
     outboundCount: number,
     risk: RetrievedSymbol["riskLevel"],
+    fuzzyScore?: number,
   ): string {
+    const scoreTag = fuzzyScore !== undefined ? ` [Fuzzy Risk: ${fuzzyScore}%]` : "";
     if (risk === "critical") {
-      return `💥 Hati-hati: '${node.name}' dipakai di ${inboundCount} tempat. Senggol dikit, deploy hari Jumat langsung bikin customer service nangis.`;
+      return `💥 Hati-hati: '${node.name}' dipakai di ${inboundCount} tempat${scoreTag}. Senggol dikit, deploy hari Jumat langsung bikin customer service nangis.`;
     }
     if (inboundCount > 0 && outboundCount > 5) {
-      return `🍝 Fungsi '${node.name}' manggil ${outboundCount} dependensi lain. Bau-bau spaghetti code yang siap meledak pas dipanggil concurrency tinggi.`;
+      return `🍝 Fungsi '${node.name}' manggil ${outboundCount} dependensi lain${scoreTag}. Bau-bau spaghetti code yang siap meledak pas dipanggil concurrency tinggi.`;
     }
     if (inboundCount === 0 && node.kind === "function") {
-      return `👻 '${node.name}' sepertinya dead code / zombie function. Gak ada yang manggil di codebase, tapi masih numpang hidup di repo.`;
+      return `👻 '${node.name}' sepertinya dead code / zombie function${scoreTag}. Gak ada yang manggil di codebase, tapi masih numpang hidup di repo.`;
     }
-    return `⚡ '${node.name}' terhubung ke ${outboundCount} outbound call. Pastikan error handling gak cuma 'console.log(err)'.`;
+    return `⚡ '${node.name}' terhubung ke ${outboundCount} outbound call${scoreTag}. Pastikan error handling gak cuma 'console.log(err)'.`;
   }
 }

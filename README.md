@@ -124,6 +124,16 @@ ruas trace prosesQRIS . --dijkstra --depth 3
 ruas ask "fungsi bayar qris" --roast
 ruas ask "calculate customer discount" --roast
 
+# Systematic Fuzzy Matching (Acronyms, Damerau-Levenshtein, Sub-words, Typo tolerance)
+ruas fuzzy pQRIS .
+ruas fuzzy invGen . --threshold 0.35
+
+# Ask code with Mamdani Fuzzy Risk Evaluation & Linguistic Distribution
+ruas ask "proses pembayaran" --fuzzy --roast
+
+# Codebase architectural audit with Mamdani Fuzzy Fragility Index
+ruas audit . --fuzzy
+
 # Start background live file watcher
 ruas watch .
 
@@ -182,6 +192,30 @@ ruas path handlePayment chargeGateway -k 3
 By computing Dijkstra distances to all reachable downstream nodes, Ruas establishes an exact **confidence decay horizon**, showing developers the true blast radius before cumulative confidence decays to near-zero.
 ```bash
 ruas trace prosesQRIS --dijkstra --depth 3
+```
+
+---
+
+## 🎯 Systematic Fuzzy Logic & Approximate Reasoning (Zadeh 1965)
+
+Ruas v1.2.0 introduces a dual-layer systematic fuzzy intelligence subsystem:
+
+### 1. Multi-Signal Fuzzy Matcher (`FuzzyMatcher`)
+- **Damerau-Levenshtein Distance**: Optimal string alignment handling insertions, deletions, substitutions, and adjacent transpositions.
+- **CamelCase & Snake_Case Sub-Token Matching**: Automatically identifies acronyms and sub-word abbreviations (e.g. `pQRIS` ➔ `prosesQRIS`, `invGen` ➔ `InvoiceGenerator`, `calcDisc` ➔ `calculateDirectDiscount`).
+- **Jaro-Winkler Prefix Bonus & Trigram Dice Coefficient**: Yields continuous fuzzy similarity scores $[0.0, 1.0]$.
+```bash
+ruas fuzzy pQRIS .
+ruas fuzzy invGen . --threshold 0.35
+```
+
+### 2. Mamdani Fuzzy Inference System (`FuzzyInferenceEngine`)
+Replaces brittle step functions with continuous triangular (`trimf`) and trapezoidal (`trapmf`) membership functions:
+- Evaluates Afferent ($Ca$) and Efferent ($Ce$) coupling, Bayesian edge confidence, and structural instability through Mamdani IF-THEN rules.
+- Computes the continuous **Fuzzy Fragility Index (FFI)** ($0-100\%$) and **Linguistic Membership Profile** (`Clean`, `Fair`, `Fragile`, `Critical`).
+```bash
+ruas ask "proses pembayaran" --fuzzy --roast
+ruas audit . --fuzzy
 ```
 
 ---

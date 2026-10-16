@@ -7,7 +7,12 @@ import pc from "picocolors";
 import { SqliteStorage } from "@ruas/store";
 import { FileWatcher, Indexer } from "@ruas/indexer";
 import { SymbolResolver } from "@ruas/resolver";
-import { RetrievalPipeline, ArchitectureAnalyzer } from "@ruas/rank";
+import {
+  RetrievalPipeline,
+  ArchitectureAnalyzer,
+  FuzzyMatcher,
+  FuzzyInferenceEngine,
+} from "@ruas/rank";
 import { runStdioServer } from "@ruas/mcp";
 import { HandoverGenerator, AiNativeGenerator } from "@ruas/docgen";
 import {
@@ -159,9 +164,10 @@ program
   .argument("[path]", "Path to project directory", ".")
   .option("-l, --limit <number>", "Max number of symbols to return", "5")
   .option("--db <path>", "Custom database path")
+  .option("--fuzzy", "Display Mamdani fuzzy risk evaluation and linguistic distribution", false)
   .option("--roast", "Enable brutally honest emotional damage code quality commentary", false)
   .option("--json", "Output results in JSON format", false)
-  .action(async (query: string, targetPath: string, options: { limit: string; db?: string; roast?: boolean; json?: boolean }) => {
+  .action(async (query: string, targetPath: string, options: { limit: string; db?: string; fuzzy?: boolean; roast?: boolean; json?: boolean }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
 
@@ -214,6 +220,22 @@ program
             console.log(`     ${pc.dim("Doc:")} ${sym.node.docComment.replace(/\n\s*/g, " ").slice(0, 80)}`);
           }
           console.log(`     ${pc.dim("RRF Score:")} ${sym.rrfScore} | ${pc.dim("Inbound:")} ${sym.inboundEdges.length} | ${pc.dim("Outbound:")} ${sym.outboundEdges.length}`);
+
+          if (options.fuzzy && sym.fuzzyEvaluation) {
+            const gradeColor =
+              sym.fuzzyEvaluation.crispGrade === "Critical"
+                ? pc.red
+                : sym.fuzzyEvaluation.crispGrade === "High"
+                ? pc.magenta
+                : sym.fuzzyEvaluation.crispGrade === "Moderate"
+                ? pc.yellow
+                : pc.green;
+            console.log(
+              `     ${pc.cyan("Fuzzy Risk:")} ${gradeColor(
+                `${sym.fuzzyEvaluation.rawScore}% [${sym.fuzzyEvaluation.crispGrade}]`
+              )} | ${pc.dim(sym.fuzzyEvaluation.rationale)}`
+            );
+          }
 
           if (sym.roastComment) {
             console.log(`     ${pc.red(pc.bold(sym.roastComment))}`);
@@ -500,8 +522,9 @@ program
   .description("Perform architectural health check, detect circular dependency cycles, and flag orphan dead code")
   .argument("[path]", "Path to project directory", ".")
   .option("--db <path>", "Custom database path")
+  .option("--fuzzy", "Display Mamdani fuzzy linguistic distribution and defuzzified score", false)
   .option("--json", "Output results in JSON format", false)
-  .action(async (targetPath: string, options: { db?: string; json?: boolean }) => {
+  .action(async (targetPath: string, options: { db?: string; fuzzy?: boolean; json?: boolean }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
 
@@ -532,6 +555,12 @@ program
       console.log(pc.cyan(`\n🏛 Ruas Architecture & Health Audit — ${pc.bold(rootDir)}`));
       const gradeColor = health.score >= 80 ? pc.green : health.score >= 60 ? pc.yellow : pc.red;
       console.log(`  ${pc.bold("Overall Health Score:")}   ${gradeColor(pc.bold(`${health.score}/100 [Grade: ${health.grade}]`))}`);
+      if (options.fuzzy && health.fuzzyEvaluation) {
+        console.log(`  ${pc.bold("Fuzzy Defuzzified:")}   ${gradeColor(pc.bold(`${health.fuzzyEvaluation.rawScore}% [${health.fuzzyEvaluation.crispGrade}]`))}`);
+        const dist = health.fuzzyEvaluation.linguisticDistribution;
+        console.log(`  ${pc.bold("Fuzzy Profile:")}       ${pc.green(`Clean: ${Math.round((dist.Clean ?? 0) * 100)}%`)} | ${pc.cyan(`Fair: ${Math.round((dist.Fair ?? 0) * 100)}%`)} | ${pc.yellow(`Fragile: ${Math.round((dist.Fragile ?? 0) * 100)}%`)} | ${pc.red(`Critical: ${Math.round((dist.Critical ?? 0) * 100)}%`)}`);
+        console.log(`  ${pc.dim(`Rationale: ${health.fuzzyEvaluation.rationale}`)}`);
+      }
       console.log(`  ${pc.bold("Total Symbols:")}         ${nodes.filter((n) => n.kind !== "file").length}`);
       console.log(`  ${pc.bold("Graph Edges:")}           ${edges.length}`);
       console.log(`  ${pc.bold("Circular Cycles:")}       ${health.totalCycles > 0 ? pc.red(pc.bold(health.totalCycles)) : pc.green("0 (Clean)")}`);
@@ -809,6 +838,85 @@ program
       await storage.close();
       const message = error instanceof Error ? error.message : String(error);
       console.error(pc.red(`\n✖ Error tracing symbol: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
+// --- ruas fuzzy ---
+program
+  .command("fuzzy")
+  .description("Perform systematic fuzzy symbol matching with Damerau-Levenshtein, acronym detection, and sub-word alignment")
+  .argument("<query>", "Fuzzy query, abbreviation, or acronym (e.g. pQRIS, invGen, vSess)")
+  .argument("[path]", "Path to project directory", ".")
+  .option("-t, --threshold <number>", "Minimum similarity threshold (0.0 - 1.0)", "0.4")
+  .option("-l, --limit <number>", "Max number of matches to display", "10")
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(async (query: string, targetPath: string, options: { threshold: string; limit: string; db?: string; json?: boolean }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+    const threshold = parseFloat(options.threshold) || 0.4;
+    const limit = parseInt(options.limit, 10) || 10;
+
+    if (!existsSync(dbPath)) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: "Database not found. Run 'ruas index' first." }, null, 2));
+      } else {
+        console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      }
+      return;
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    try {
+      await storage.init();
+      const allNodes = await storage.getAllNodes();
+      await storage.close();
+
+      const symbolNodes = allNodes.filter((n) => n.kind !== "file");
+      const candidates = FuzzyMatcher.matchCandidates(query, symbolNodes, {
+        threshold,
+        limit,
+      });
+
+      if (options.json) {
+        console.log(JSON.stringify({ query, totalMatches: candidates.length, candidates }, null, 2));
+        return;
+      }
+
+      console.log(pc.cyan(`\n🎯 Ruas Systematic Fuzzy Search — Query: "${pc.bold(query)}"`));
+      console.log(`  ${pc.bold("Threshold:")}       ${threshold}`);
+      console.log(`  ${pc.bold("Symbols Scanned:")} ${symbolNodes.length}`);
+      console.log(`  ${pc.bold("Matches Found:")}   ${pc.green(candidates.length)}\n`);
+
+      if (candidates.length === 0) {
+        console.log(pc.yellow("  No fuzzy matches meeting the similarity threshold.\n"));
+        return;
+      }
+
+      for (let i = 0; i < candidates.length; i++) {
+        const c = candidates[i]!;
+        const rank = pc.bold(`#${i + 1}`);
+        const scorePct = `${Math.round(c.score * 100)}%`;
+        const scoreTag = c.score >= 0.8 ? pc.green(scorePct) : c.score >= 0.6 ? pc.yellow(scorePct) : pc.dim(scorePct);
+        const acronymTag = c.details.acronymMatch ? pc.magenta(" [ACRONYM]") : "";
+        const kindTag = pc.cyan(`[${c.node.kind}]`);
+
+        console.log(`  ${rank} ${scoreTag}${acronymTag} ${kindTag} ${pc.bold(pc.white(c.node.name))} — ${pc.dim(c.node.qualifiedName)}`);
+        console.log(`     ${pc.dim(`EditSim: ${c.details.editDistanceSim} | Trigram: ${c.details.trigramSim} | PrefixBonus: +${c.details.prefixBonus}`)}`);
+        if (c.node.signature) {
+          console.log(`     ${pc.dim("Signature:")} ${c.node.signature}`);
+        }
+        console.log();
+      }
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      if (options.json) {
+        console.error(JSON.stringify({ error: message }, null, 2));
+      } else {
+        console.error(pc.red(`\n✖ Error during fuzzy search: ${message}\n`));
+      }
       process.exit(1);
     }
   });

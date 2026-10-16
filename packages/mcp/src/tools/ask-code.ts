@@ -84,10 +84,13 @@ export function registerAskCodeTool(
           lines.push(`- **Documentation:** *${node.docComment.replace(/\n+/g, " ").trim()}*`);
         }
 
-        lines.push(
-          `- **Calibrated Rank:** RRF Score ${item.rrfScore.toFixed(4)} | **Inbound Callers:** ${item.inboundEdges.length} | **Outbound Callees:** ${item.outboundEdges.length}`,
-        );
-        lines.push(`- **Blast Radius Risk:** \`${item.riskLevel.toUpperCase()}\``);
+        if (item.fuzzyEvaluation) {
+          lines.push(
+            `- **Fuzzy Risk Evaluation:** \`${item.fuzzyEvaluation.rawScore}% [${item.fuzzyEvaluation.crispGrade}]\` (${item.fuzzyEvaluation.rationale})`,
+          );
+        } else {
+          lines.push(`- **Blast Radius Risk:** \`${item.riskLevel.toUpperCase()}\``);
+        }
 
         if (roast && item.roastComment) {
           lines.push(`> ⚡ **[Emotional Damage]:** ${item.roastComment}`);

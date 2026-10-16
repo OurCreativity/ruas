@@ -3,6 +3,7 @@ import type {
   CycleInfo,
   DijkstraHorizonResult,
   EdgeRecord,
+  FuzzyEvaluationResult,
   KPathResult,
   NodeRecord,
   OrphanInfo,
@@ -10,6 +11,7 @@ import type {
   SubsystemCoupling,
 } from "@ruas/core";
 import { DijkstraEngine } from "./dijkstra.js";
+import { FuzzyInferenceEngine } from "./fuzzy-inference.js";
 
 export class ArchitectureAnalyzer {
   /**
@@ -273,6 +275,26 @@ export class ArchitectureAnalyzer {
     else if (score >= 70) grade = "C";
     else if (score >= 60) grade = "D";
 
+    // Systematic Fuzzy Architectural Evaluation (Mamdani Model)
+    const wClean = FuzzyInferenceEngine.trapmf(score, 78, 88, 100, 100);
+    const wFair = FuzzyInferenceEngine.trimf(score, 58, 74, 86);
+    const wFragile = FuzzyInferenceEngine.trimf(score, 38, 54, 68);
+    const wCritical = FuzzyInferenceEngine.trapmf(score, 0, 0, 36, 48);
+
+    const fuzzyEvaluation: FuzzyEvaluationResult = {
+      rawScore: score,
+      crispGrade: score >= 85 ? "Minimal" : score >= 65 ? "Low" : score >= 45 ? "Moderate" : score >= 25 ? "High" : "Critical",
+      linguisticDistribution: {
+        Clean: Math.round(wClean * 100) / 100,
+        Fair: Math.round(wFair * 100) / 100,
+        Fragile: Math.round(wFragile * 100) / 100,
+        Critical: Math.round(wCritical * 100) / 100,
+      },
+      rationale: cycles.length > 0
+        ? `Architectural instability detected with ${cycles.length} circular cycles. High risk of coupling lock-in.`
+        : `Clean architectural boundaries with 0 circular dependency cycles and ${godNodes.length} dominant hubs.`,
+    };
+
     return {
       score,
       grade,
@@ -282,6 +304,7 @@ export class ArchitectureAnalyzer {
       orphans,
       subsystemCouplings,
       godNodes,
+      fuzzyEvaluation,
     };
   }
 

@@ -45,6 +45,14 @@ export function registerAnalyzeArchitectureTool(
 
       sections.push(`# 🏛 Architecture Health Report`);
       sections.push(`- **Health Score:** ${health.score}/100 (Grade: ${health.grade})`);
+      if (health.fuzzyEvaluation) {
+        sections.push(`- **Fuzzy Fragility Index:** ${health.fuzzyEvaluation.rawScore}% [${health.fuzzyEvaluation.crispGrade}]`);
+        const dist = health.fuzzyEvaluation.linguisticDistribution;
+        sections.push(
+          `- **Fuzzy Linguistic Profile:** Clean: ${Math.round((dist.Clean ?? 0) * 100)}% | Fair: ${Math.round((dist.Fair ?? 0) * 100)}% | Fragile: ${Math.round((dist.Fragile ?? 0) * 100)}% | Critical: ${Math.round((dist.Critical ?? 0) * 100)}%`,
+        );
+        sections.push(`- **Fuzzy Rationale:** *${health.fuzzyEvaluation.rationale}*`);
+      }
       sections.push(`- **Total Symbols:** ${nodes.filter((n: NodeRecord) => n.kind !== "file").length}`);
       sections.push(`- **Total Graph Edges:** ${edges.length}`);
       sections.push(`- **Circular Cycles Detected:** ${health.totalCycles}`);
