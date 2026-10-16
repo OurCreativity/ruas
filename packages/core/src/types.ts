@@ -164,6 +164,46 @@ export interface ArchitectureHealthReport {
   readonly fuzzySmells?: readonly FuzzySmellItem[] | undefined;
 }
 
+export interface ArchitectureRule {
+  readonly from: string;
+  readonly disallow: readonly string[];
+  readonly message?: string | undefined;
+}
+
+export interface ArchitectureConfig {
+  readonly layers: Record<string, readonly string[]>;
+  readonly rules: readonly ArchitectureRule[];
+}
+
+export interface ArchitecturalViolation {
+  readonly rule: ArchitectureRule;
+  readonly srcNode: NodeRecord;
+  readonly srcLayer: string;
+  readonly dstNode: NodeRecord;
+  readonly dstLayer: string;
+  readonly edge: EdgeRecord;
+  readonly severity: "Critical" | "Warning" | "Info";
+  readonly fuzzySeverity?: FuzzyLinguisticGrade | undefined;
+  readonly fuzzyViolationDegree: number; // in [0, 1]
+  readonly message: string;
+  readonly remediation?: string | undefined;
+}
+
+export interface ArchitectureLinterReport {
+  readonly purityScore: number; // 0 to 100
+  readonly grade: "A" | "B" | "C" | "D" | "F";
+  readonly totalViolations: number;
+  readonly violations: readonly ArchitecturalViolation[];
+  readonly layerStats: readonly {
+    readonly layer: string;
+    readonly symbolCount: number;
+    readonly outboundCalls: number;
+    readonly violationCount: number;
+  }[];
+  readonly fuzzyEvaluation?: FuzzyEvaluationResult | undefined;
+  readonly summary: string;
+}
+
 export interface PathResult {
   readonly sourceNode: NodeRecord;
   readonly targetNode: NodeRecord;

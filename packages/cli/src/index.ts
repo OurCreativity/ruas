@@ -1,15 +1,17 @@
 #!/usr/bin/env node
 
-import { existsSync, mkdirSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { resolve, join, dirname } from "node:path";
 import { Command } from "commander";
 import pc from "picocolors";
+import type { ArchitectureConfig, NodeRecord } from "@ruas/core";
 import { SqliteStorage } from "@ruas/store";
 import { FileWatcher, Indexer } from "@ruas/indexer";
 import { SymbolResolver } from "@ruas/resolver";
 import {
   RetrievalPipeline,
   ArchitectureAnalyzer,
+  ArchitectureLinter,
   FuzzyMatcher,
   FuzzyInferenceEngine,
 } from "@ruas/rank";
@@ -679,6 +681,209 @@ program
       process.exit(1);
     }
   });
+
+// --- ruas lint / check ---
+const lintAction = async (
+  targetPath: string,
+  options: {
+    config?: string;
+    init?: boolean;
+    strict?: boolean;
+    json?: boolean;
+    db?: string;
+  },
+) => {
+  const rootDir = resolve(targetPath);
+  const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+  // Handle --init
+  if (options.init) {
+    const defaultConfigFile = join(rootDir, ".ruas", "architecture.json");
+    if (!existsSync(join(rootDir, ".ruas"))) {
+      mkdirSync(join(rootDir, ".ruas"), { recursive: true });
+    }
+
+    let nodes: readonly NodeRecord[] = [];
+    if (existsSync(dbPath)) {
+      const storage = new SqliteStorage({ dbPath });
+      await storage.init();
+      nodes = await storage.getAllNodes();
+      await storage.close();
+    }
+
+    const generatedConfig = ArchitectureLinter.generateDefaultConfig(nodes);
+    writeFileSync(defaultConfigFile, JSON.stringify(generatedConfig, null, 2), "utf-8");
+
+    if (options.json) {
+      console.log(JSON.stringify({ created: defaultConfigFile, config: generatedConfig }, null, 2));
+    } else {
+      console.log(pc.green(`\n✓ Generated Clean Architecture boundary configuration:`));
+      console.log(`  File: ${pc.bold(defaultConfigFile)}`);
+      console.log(`  Layers: ${pc.cyan(Object.keys(generatedConfig.layers).join(", "))}`);
+      console.log(`  Rules: ${pc.yellow(generatedConfig.rules.length)} dependency inversion boundaries defined.\n`);
+    }
+    return;
+  }
+
+  // Regular lint execution
+  if (!existsSync(dbPath)) {
+    if (options.json) {
+      console.log(JSON.stringify({ error: "Database not found. Run 'ruas index' first." }, null, 2));
+    } else {
+      console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      console.log(pc.dim("  Run `ruas index` to initialize the project graph.\n"));
+    }
+    return;
+  }
+
+  // Locate config file
+  let configPath: string | null = null;
+  const candidateConfigPaths = [
+    options.config ? resolve(options.config) : null,
+    join(rootDir, ".ruas", "architecture.json"),
+    join(rootDir, "ruas.architecture.json"),
+    join(rootDir, ".architecture.json"),
+  ].filter(Boolean) as string[];
+
+  for (const candidate of candidateConfigPaths) {
+    if (existsSync(candidate)) {
+      configPath = candidate;
+      break;
+    }
+  }
+
+  const storage = new SqliteStorage({ dbPath });
+  try {
+    await storage.init();
+    const nodes = await storage.getAllNodes();
+    const edges = await storage.getAllEdges();
+    await storage.close();
+
+    let config: ArchitectureConfig;
+    if (configPath && existsSync(configPath)) {
+      const raw = readFileSync(configPath, "utf-8");
+      config = JSON.parse(raw) as ArchitectureConfig;
+    } else {
+      // Heuristic auto-config
+      config = ArchitectureLinter.generateDefaultConfig(nodes);
+    }
+
+    const report = ArchitectureLinter.lint(nodes, edges, config);
+
+    if (options.json) {
+      console.log(JSON.stringify(report, null, 2));
+      if (
+        options.strict &&
+        (report.purityScore < 80 || report.violations.some((v) => v.severity === "Critical"))
+      ) {
+        process.exit(1);
+      }
+      return;
+    }
+
+    console.log(pc.cyan(`\n🏛 Ruas Architectural Boundary Linter — ${pc.bold(rootDir)}`));
+    if (configPath) {
+      console.log(`  ${pc.dim(`Config: ${configPath}`)}`);
+    } else {
+      console.log(
+        `  ${pc.yellow("Notice: No configuration file found. Using auto-detected Clean Architecture layers.")}`,
+      );
+      console.log(`  ${pc.dim("Tip: Run `ruas lint --init` to create a custom .ruas/architecture.json")}`);
+    }
+
+    const scoreColor =
+      report.purityScore >= 85 ? pc.green : report.purityScore >= 70 ? pc.yellow : pc.red;
+    console.log(
+      `  ${pc.bold("Purity Score:")}       ${scoreColor(pc.bold(`${report.purityScore}/100 [Grade: ${report.grade}]`))}`,
+    );
+    if (report.fuzzyEvaluation) {
+      console.log(
+        `  ${pc.bold("Fuzzy Health Risk:")}  ${scoreColor(report.fuzzyEvaluation.crispGrade)}`,
+      );
+      const dist = report.fuzzyEvaluation.linguisticDistribution;
+      console.log(
+        `  ${pc.bold("Fuzzy Profile:")}      ${pc.green(`Clean: ${Math.round((dist.Clean ?? 0) * 100)}%`)} | ${pc.cyan(`Fair: ${Math.round((dist.Fair ?? 0) * 100)}%`)} | ${pc.yellow(`Fragile: ${Math.round((dist.Fragile ?? 0) * 100)}%`)} | ${pc.red(`Critical: ${Math.round((dist.Critical ?? 0) * 100)}%`)}`,
+      );
+    }
+    console.log(
+      `  ${pc.bold("Violations Found:")}   ${report.totalViolations === 0 ? pc.green("0 (Pristine)") : pc.red(pc.bold(report.totalViolations))}\n`,
+    );
+
+    // Layer Breakdown Table
+    console.log(pc.bold("  📁 Layer Allocation & Outbound Flows:"));
+    for (const st of report.layerStats) {
+      const vText =
+        st.violationCount > 0 ? pc.red(`${st.violationCount} violations`) : pc.green("0 violations");
+      console.log(
+        `    • ${pc.cyan(st.layer.padEnd(16))} | ${st.symbolCount.toString().padStart(4)} symbols | ${st.outboundCalls.toString().padStart(4)} outbound calls | ${vText}`,
+      );
+    }
+    console.log();
+
+    if (report.violations.length > 0) {
+      console.log(pc.red(pc.bold("  🚫 Boundary Violations:")));
+      for (const v of report.violations.slice(0, 15)) {
+        const sevColor =
+          v.severity === "Critical" ? pc.red : v.severity === "Warning" ? pc.yellow : pc.dim;
+        const sevBadge = sevColor(`[${v.severity}]`);
+        console.log(
+          `    • ${sevBadge} (μ=${v.fuzzyViolationDegree.toFixed(2)}) ${pc.white(v.srcNode.name)} in ${pc.magenta(v.srcLayer)} ➔ ${pc.white(v.dstNode.name)} in ${pc.red(v.dstLayer)} via ${pc.cyan(v.edge.kind)}`,
+        );
+        console.log(`      ${pc.dim(v.message)}`);
+        console.log(`      ${pc.dim(`From: ${v.srcNode.qualifiedName}`)}`);
+      }
+      if (report.violations.length > 15) {
+        console.log(
+          pc.dim(`    ... and ${report.violations.length - 15} more boundary violations.`),
+        );
+      }
+      console.log();
+    }
+
+    if (
+      options.strict &&
+      (report.purityScore < 80 || report.violations.some((v) => v.severity === "Critical"))
+    ) {
+      console.error(
+        pc.red(
+          `✖ Strict mode failure: Architecture purity score (${report.purityScore}) below threshold or critical boundary breaches detected.\n`,
+        ),
+      );
+      process.exit(1);
+    }
+  } catch (error) {
+    await storage.close();
+    const message = error instanceof Error ? error.message : String(error);
+    if (options.json) {
+      console.error(JSON.stringify({ error: message }, null, 2));
+    } else {
+      console.error(pc.red(`\n✖ Error during architectural linting: ${message}\n`));
+    }
+    process.exit(1);
+  }
+};
+
+program
+  .command("lint")
+  .description("Lint codebase against architectural layer boundaries with fuzzy violation scoring")
+  .argument("[path]", "Path to project directory", ".")
+  .option("-c, --config <path>", "Path to architecture configuration JSON")
+  .option("--init", "Generate default Clean Architecture configuration (.ruas/architecture.json)")
+  .option("--strict", "Exit with non-zero code if purity is below 80 or critical violations exist")
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(lintAction);
+
+program
+  .command("check")
+  .description("Alias for 'ruas lint'")
+  .argument("[path]", "Path to project directory", ".")
+  .option("-c, --config <path>", "Path to architecture configuration JSON")
+  .option("--init", "Generate default Clean Architecture configuration (.ruas/architecture.json)")
+  .option("--strict", "Exit with non-zero code if purity is below 80 or critical violations exist")
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(lintAction);
 
 // --- ruas path ---
 program

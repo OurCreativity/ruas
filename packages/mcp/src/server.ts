@@ -8,6 +8,7 @@ import { registerAnalyzeArchitectureTool } from "./tools/analyze-architecture.js
 import { registerFindPathTool } from "./tools/find-path.js";
 import { registerSaveContextTool } from "./tools/save-context.js";
 import { registerRecallContextTool } from "./tools/recall-context.js";
+import { registerLintArchitectureTool } from "./tools/lint-architecture.js";
 
 export interface RuasMcpServerOptions {
   readonly name?: string | undefined;
@@ -30,6 +31,7 @@ export function createRuasMcpServer(
   registerTraceImpactTool(server, storage);
   registerProjectOverviewTool(server, storage);
   registerAnalyzeArchitectureTool(server, storage);
+  registerLintArchitectureTool(server, storage, root);
   registerFindPathTool(server, storage);
   registerSaveContextTool(server, storage, root);
   registerRecallContextTool(server, storage, root);

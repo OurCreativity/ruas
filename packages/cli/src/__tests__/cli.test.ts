@@ -172,4 +172,24 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     const output = execSync(`node ${CLI_PATH} smell ${CLI_FIXTURE}`).toString();
     expect(output).toContain("Ruas Systematic Fuzzy Smell Detection");
   }, 30_000);
+
+  it("initializes architecture boundary configuration with lint --init", () => {
+    const output = execSync(`node ${CLI_PATH} lint ${CLI_FIXTURE} --init`).toString();
+    expect(output).toContain("Generated Clean Architecture boundary configuration");
+    expect(existsSync(join(CLI_FIXTURE, ".ruas", "architecture.json"))).toBe(true);
+  }, 30_000);
+
+  it("lints architectural boundaries with lint and check commands", () => {
+    const output = execSync(`node ${CLI_PATH} lint ${CLI_FIXTURE}`).toString();
+    expect(output).toContain("Ruas Architectural Boundary Linter");
+    expect(output).toContain("Purity Score:");
+
+    const rawJson = execSync(`node ${CLI_PATH} check ${CLI_FIXTURE} --json`).toString();
+    const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
+    expect(jsonMatch).not.toBeNull();
+    const data = JSON.parse(jsonMatch![0]);
+    expect(data.purityScore).toBeDefined();
+    expect(data.layerStats).toBeDefined();
+  }, 30_000);
 });
+

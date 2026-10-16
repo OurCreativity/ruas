@@ -238,6 +238,24 @@ ruas smell .
 ruas smell . --json
 ```
 
+### 5. Fuzzy Architectural Boundary Linter (`ruas lint` / `ruas check`)
+Enforces Clean Architecture layer boundaries (e.g., Domain must not depend on Application or Infrastructure; Inversion of Control) using Mamdani Fuzzy Inference:
+- Continuous fuzzy violation degrees $\mu_{\text{violation}}(e) \in [0, 1]$ based on edge coupling intensity, Bayesian confidence, and target blast radius.
+- Purity Score ($0-100\%$) and letter grade (`A`, `B`, `C`, `D`, `F`).
+- Automated Clean Architecture configuration generator (`--init`).
+- Strict CI/CD quality gate enforcement (`--strict`).
+
+```bash
+# Generate default Clean Architecture configuration (.ruas/architecture.json)
+ruas lint --init
+
+# Run architectural boundary audit
+ruas lint .
+
+# Run in CI mode with strict gate (fails if purity < 80 or critical violations exist)
+ruas check . --strict --json
+```
+
 ---
 
 ## 🧠 Vibe Coding Memory & AI Mother Tongue Dialect (`RUAS_CONTEXT.md`)
@@ -299,6 +317,11 @@ Enables AI coding agents to persist their working memory, active files, architec
 Restores previously checkpointed vibe coding memory and working state in the AI-Native mother tongue format, preventing context window truncation and drift.
 - **Inputs:** `includeFullManifest` (boolean), `sessionLimit` (number).
 - **Outputs:** Active intent, open tasks, invariants, and token-dense AST signatures.
+
+### 8. `lint_architecture` (Architectural Boundary Compliance)
+Enables AI coding agents to verify that newly generated code or proposed refactorings do not violate defined layer boundaries or inversion of control principles.
+- **Inputs:** `configJson` (optional string), `configPath` (optional string).
+- **Outputs:** Overall purity score, letter grade, layer outbound flow matrix, and fuzzy severity-ranked violations.
 
 ### Connecting to Claude Desktop / Cursor
 
