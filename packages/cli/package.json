@@ -36,11 +36,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fk0u/ruas.git"
+    "url": "git+https://github.com/OurCreativity/ruas.git"
   },
-  "homepage": "https://github.com/fk0u/ruas#readme",
+  "homepage": "https://github.com/OurCreativity/ruas#readme",
   "bugs": {
-    "url": "https://github.com/fk0u/ruas/issues"
+    "url": "https://github.com/OurCreativity/ruas/issues"
   },
   "license": "MIT",
   "engines": {

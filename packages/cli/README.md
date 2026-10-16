@@ -87,7 +87,7 @@ pnpm add -g @fk0u/ruas
 
 #### Option 3: Local Development (from source)
 ```bash
-git clone https://github.com/fk0u/ruas.git
+git clone https://github.com/OurCreativity/ruas.git
 cd ruas
 pnpm install
 pnpm build

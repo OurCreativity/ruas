@@ -16,7 +16,7 @@ We are committed to providing a friendly, safe, and welcoming environment for al
 
 ### Setup
 ```bash
-git clone https://github.com/fk0u/ruas.git
+git clone https://github.com/OurCreativity/ruas.git
 cd ruas
 pnpm install
 pnpm build
