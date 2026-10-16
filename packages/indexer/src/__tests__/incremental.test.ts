@@ -148,6 +148,7 @@ export function bayarOrder(amount: number): boolean {
       });
 
       watcher.start();
+      await new Promise((r) => setTimeout(r, 100));
 
       // Trigger change by touching discount.ts
       writeFileSync(

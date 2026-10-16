@@ -181,5 +181,146 @@ describe("FuzzyInferenceEngine (Mamdani Model & Zadeh Operations)", () => {
     expect(report.fuzzyEvaluation!.rawScore).toBe(75);
     expect(report.fuzzyEvaluation!.linguisticDistribution).toBeDefined();
     expect(report.fuzzyEvaluation!.linguisticDistribution.Fair).toBeGreaterThan(0);
+    expect(report.fuzzySmells).toBeDefined();
+  });
+
+  it("evaluates edge and path fuzzy impedance systematically", () => {
+    const srcNode: NodeRecord = {
+      id: "src",
+      fileId: "f1",
+      kind: "function",
+      name: "entryPoint",
+      qualifiedName: "src/ui.ts:entryPoint",
+      startLine: 1,
+      endLine: 10,
+      signature: null,
+      docComment: null,
+      tokens: "entry point",
+    };
+
+    const dstNode: NodeRecord = {
+      id: "dst",
+      fileId: "f2",
+      kind: "class",
+      name: "DatabaseHub",
+      qualifiedName: "src/db.ts:DatabaseHub",
+      startLine: 1,
+      endLine: 100,
+      signature: null,
+      docComment: null,
+      tokens: "database hub",
+    };
+
+    // High uncertainty & high hub degree -> elevated impedance
+    const evalHigh = FuzzyInferenceEngine.evaluateEdgeImpedance(0.4, srcNode, dstNode, 15);
+    expect(evalHigh.frictionMultiplier).toBeGreaterThan(1.5);
+    expect(evalHigh.linguisticGrade).toMatch(/High|Critical/);
+
+    // High confidence & modular intra-file -> minimal impedance
+    const evalLow = FuzzyInferenceEngine.evaluateEdgeImpedance(0.99, srcNode, srcNode, 1);
+    expect(evalLow.frictionMultiplier).toBeLessThanOrEqual(1.3);
+    expect(evalLow.linguisticGrade).toMatch(/Minimal|Low/);
+
+    // Path impedance evaluation
+    const pathEval = FuzzyInferenceEngine.evaluatePathImpedance([
+      { node: srcNode, fuzzyStepImpedance: 20, confidence: 0.9 },
+      { node: dstNode, fuzzyStepImpedance: 60, confidence: 0.6 },
+    ]);
+    expect(pathEval.rawScore).toBeGreaterThan(0);
+    expect(pathEval.crispGrade).toBeDefined();
+    expect(pathEval.linguisticDistribution).toBeDefined();
+  });
+
+  it("computes Fuzzy Dijkstra Shortest Path with impedance penalty", () => {
+    const nodes: NodeRecord[] = [
+      {
+        id: "A",
+        fileId: "f1",
+        kind: "function",
+        name: "nodeA",
+        qualifiedName: "src/a.ts:nodeA",
+        startLine: 1,
+        endLine: 10,
+        signature: null,
+        docComment: null,
+        tokens: "node a",
+      },
+      {
+        id: "B_fragile",
+        fileId: "f2",
+        kind: "function",
+        name: "nodeB_fragile",
+        qualifiedName: "src/b.ts:nodeB_fragile",
+        startLine: 1,
+        endLine: 10,
+        signature: null,
+        docComment: null,
+        tokens: "node b fragile",
+      },
+      {
+        id: "C_clean",
+        fileId: "f1",
+        kind: "function",
+        name: "nodeC_clean",
+        qualifiedName: "src/a.ts:nodeC_clean",
+        startLine: 11,
+        endLine: 20,
+        signature: null,
+        docComment: null,
+        tokens: "node c clean",
+      },
+      {
+        id: "D",
+        fileId: "f1",
+        kind: "function",
+        name: "nodeD",
+        qualifiedName: "src/a.ts:nodeD",
+        startLine: 21,
+        endLine: 30,
+        signature: null,
+        docComment: null,
+        tokens: "node d",
+      },
+    ];
+
+    // Two parallel routes from A to D:
+    // Route 1: A -> B_fragile -> D (crosses file, lower confidence)
+    // Route 2: A -> C_clean -> D (same file, high confidence)
+    const edges = [
+      { id: "e1", srcId: "A", dstId: "B_fragile", kind: "calls" as const, alpha: 6, beta: 4, evidenceJson: null },
+      { id: "e2", srcId: "B_fragile", dstId: "D", kind: "calls" as const, alpha: 6, beta: 4, evidenceJson: null },
+      { id: "e3", srcId: "A", dstId: "C_clean", kind: "calls" as const, alpha: 9, beta: 1, evidenceJson: null },
+      { id: "e4", srcId: "C_clean", dstId: "D", kind: "calls" as const, alpha: 9, beta: 1, evidenceJson: null },
+    ];
+
+    const fuzzyPath = ArchitectureAnalyzer.findPath("A", "D", nodes, edges, true);
+    expect(fuzzyPath.found).toBe(true);
+    expect(fuzzyPath.fuzzyResistance).toBeDefined();
+    expect(fuzzyPath.fuzzyEvaluation).toBeDefined();
+    // Route through C_clean should be favored due to minimal impedance
+    expect(fuzzyPath.path[1]?.node.id).toBe("C_clean");
+  });
+
+  it("detects dead code and God components with fuzzy smell detection", () => {
+    const unreferencedInternal: NodeRecord = {
+      id: "dead1",
+      fileId: "f1",
+      kind: "function",
+      name: "_internalHelper",
+      qualifiedName: "src/utils.ts:_internalHelper",
+      startLine: 1,
+      endLine: 10,
+      signature: "function _internalHelper()",
+      docComment: null,
+      tokens: "internal helper",
+    };
+
+    const deadEval = FuzzyInferenceEngine.evaluateDeadCodeLikelihood(unreferencedInternal, 0, 0, false);
+    expect(deadEval.rawScore).toBeGreaterThanOrEqual(80);
+    expect(deadEval.crispGrade).toBe("Critical");
+
+    const godEval = FuzzyInferenceEngine.evaluateGodComponentLikelihood(unreferencedInternal, 30);
+    expect(godEval.rawScore).toBeGreaterThanOrEqual(75);
+    expect(godEval.crispGrade).toMatch(/High|Critical/);
   });
 });

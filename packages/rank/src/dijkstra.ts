@@ -6,6 +6,7 @@ import type {
   NodeRecord,
   PathResult,
 } from "@ruas/core";
+import { FuzzyInferenceEngine } from "./fuzzy-inference.js";
 
 interface QueueItem<T> {
   readonly element: T;
@@ -89,6 +90,8 @@ export interface DijkstraEdge {
   readonly target: string;
   readonly edge: EdgeRecord;
   readonly weight: number;
+  readonly rawImpedance?: number | undefined;
+  readonly frictionMultiplier?: number | undefined;
 }
 
 /**
@@ -103,7 +106,9 @@ export interface DijkstraEdge {
  * is mathematically equivalent to maximizing joint Bayesian confidence:
  *   min sum(-ln(p_i)) = min(-ln(product(p_i))) <=> max product(p_i)
  *
- * This satisfies Dijkstra's non-negative edge weight prerequisite strictly.
+ * In Fuzzy Dijkstra mode, edge weight incorporates Mamdani fuzzy impedance:
+ *   w_fuzzy(e) = w_bayesian(e) * f(e) where f(e) in [1.0, 3.5] >= 1.
+ * This guarantees Dijkstra's non-negative edge weight prerequisite strictly: w_fuzzy(e) >= 0.
  */
 export class DijkstraEngine {
   private static readonly DEPENDENCY_KINDS = new Set([
@@ -116,14 +121,20 @@ export class DijkstraEngine {
   ]);
 
   /**
-   * Builds an adjacency list with Bayesian negative log-likelihood edge weights.
+   * Builds an adjacency list with Bayesian negative log-likelihood or Fuzzy impedance edge weights.
    */
   public static buildAdjacencyList(
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
     excludedEdgeIds: ReadonlySet<string> = new Set(),
+    fuzzy = false,
   ): Map<string, DijkstraEdge[]> {
     const nodeMap = new Map<string, NodeRecord>(nodes.map((n) => [n.id, n]));
+    const inDegreeMap = new Map<string, number>();
+    for (const e of edges) {
+      inDegreeMap.set(e.dstId, (inDegreeMap.get(e.dstId) ?? 0) + 1);
+    }
+
     const adj = new Map<string, DijkstraEdge[]>();
 
     for (const n of nodes) {
@@ -133,9 +144,34 @@ export class DijkstraEngine {
     for (const e of edges) {
       if (excludedEdgeIds.has(e.id)) continue;
       if (DijkstraEngine.DEPENDENCY_KINDS.has(e.kind) && adj.has(e.srcId) && nodeMap.has(e.dstId)) {
+        const srcNode = nodeMap.get(e.srcId)!;
+        const dstNode = nodeMap.get(e.dstId)!;
         const p = e.alpha / (e.alpha + e.beta);
-        const cost = Math.max(0.001, -Math.log(Math.max(0.001, p)));
-        adj.get(e.srcId)!.push({ target: e.dstId, edge: e, weight: cost });
+        const baseCost = Math.max(0.001, -Math.log(Math.max(0.001, p)));
+
+        let weight = baseCost;
+        let rawImpedance: number | undefined;
+        let frictionMultiplier: number | undefined;
+
+        if (fuzzy) {
+          const evalRes = FuzzyInferenceEngine.evaluateEdgeImpedance(
+            p,
+            srcNode,
+            dstNode,
+            inDegreeMap.get(e.dstId) ?? 1,
+          );
+          frictionMultiplier = evalRes.frictionMultiplier;
+          rawImpedance = evalRes.rawImpedance;
+          weight = baseCost * frictionMultiplier;
+        }
+
+        adj.get(e.srcId)!.push({
+          target: e.dstId,
+          edge: e,
+          weight,
+          rawImpedance,
+          frictionMultiplier,
+        });
       }
     }
 
@@ -144,6 +180,7 @@ export class DijkstraEngine {
 
   /**
    * Finds the shortest directed path between source and target using O((V + E) log V) Dijkstra.
+   * Supports standard Bayesian negative log-likelihood and Mamdani Fuzzy Impedance.
    */
   public static findShortestPath(
     sourceId: string,
@@ -151,6 +188,7 @@ export class DijkstraEngine {
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
     excludedEdgeIds: ReadonlySet<string> = new Set(),
+    fuzzy = false,
   ): PathResult {
     const nodeMap = new Map<string, NodeRecord>(nodes.map((n) => [n.id, n]));
     const srcNode = nodeMap.get(sourceId);
@@ -168,10 +206,19 @@ export class DijkstraEngine {
         path: [{ node: srcNode }],
         cumulativeConfidence: 1.0,
         hops: 0,
+        fuzzyResistance: 0,
+        fuzzyEvaluation: fuzzy
+          ? {
+              rawScore: 0,
+              crispGrade: "Minimal",
+              linguisticDistribution: { Minimal: 1.0, Low: 0, Moderate: 0, High: 0, Critical: 0 },
+              rationale: "Self-referential path.",
+            }
+          : undefined,
       };
     }
 
-    const adj = DijkstraEngine.buildAdjacencyList(nodes, edges, excludedEdgeIds);
+    const adj = DijkstraEngine.buildAdjacencyList(nodes, edges, excludedEdgeIds, fuzzy);
 
     const dist = new Map<string, number>();
     const prev = new Map<string, { prevNodeId: string; edge: EdgeRecord }>();
@@ -218,18 +265,31 @@ export class DijkstraEngine {
     }
 
     // Reconstruct path
-    const pathNodes: { node: NodeRecord; edgeToNext?: EdgeRecord | undefined; confidence?: number | undefined }[] = [];
+    const pathNodes: {
+      node: NodeRecord;
+      edgeToNext?: EdgeRecord | undefined;
+      confidence?: number | undefined;
+      fuzzyStepImpedance?: number | undefined;
+    }[] = [];
     let curr = targetId;
     let cumulativeProb = 1.0;
 
-    const sequence: { node: NodeRecord; edge: EdgeRecord; conf: number }[] = [];
+    const sequence: { node: NodeRecord; edge: EdgeRecord; conf: number; stepImpedance?: number | undefined }[] = [];
     while (curr !== sourceId) {
       const step = prev.get(curr);
       if (!step) break;
       const node = nodeMap.get(curr)!;
       const p = step.edge.alpha / (step.edge.alpha + step.edge.beta);
       cumulativeProb *= p;
-      sequence.unshift({ node, edge: step.edge, conf: p });
+
+      let stepImpedance: number | undefined;
+      if (fuzzy) {
+        const uNode = nodeMap.get(step.prevNodeId)!;
+        const evalRes = FuzzyInferenceEngine.evaluateEdgeImpedance(p, uNode, node);
+        stepImpedance = evalRes.rawImpedance;
+      }
+
+      sequence.unshift({ node, edge: step.edge, conf: p, stepImpedance });
       curr = step.prevNodeId;
     }
 
@@ -238,6 +298,7 @@ export class DijkstraEngine {
         node: srcNode,
         edgeToNext: sequence[0]?.edge,
         confidence: sequence[0]?.conf,
+        fuzzyStepImpedance: sequence[0]?.stepImpedance,
       });
 
       for (let i = 0; i < sequence.length; i++) {
@@ -248,6 +309,7 @@ export class DijkstraEngine {
             node: item.node,
             edgeToNext: nextItem.edge,
             confidence: nextItem.conf,
+            fuzzyStepImpedance: nextItem.stepImpedance,
           });
         } else {
           pathNodes.push({
@@ -259,6 +321,8 @@ export class DijkstraEngine {
       pathNodes.push({ node: srcNode });
     }
 
+    const fuzzyEvaluation = fuzzy ? FuzzyInferenceEngine.evaluatePathImpedance(pathNodes) : undefined;
+
     return {
       sourceNode: srcNode,
       targetNode: dstNode,
@@ -267,6 +331,8 @@ export class DijkstraEngine {
       cumulativeConfidence: Math.round(cumulativeProb * 1000) / 1000,
       hops: sequence.length,
       cost: Math.round((dist.get(targetId) ?? 0) * 1000) / 1000,
+      fuzzyResistance: fuzzyEvaluation?.rawScore,
+      fuzzyEvaluation,
     };
   }
 
@@ -280,6 +346,7 @@ export class DijkstraEngine {
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
     k = 3,
+    fuzzy = false,
   ): KPathResult {
     const nodeMap = new Map<string, NodeRecord>(nodes.map((n) => [n.id, n]));
     const srcNode = nodeMap.get(sourceId);
@@ -289,7 +356,7 @@ export class DijkstraEngine {
       throw new Error(`Source or Target node not found.`);
     }
 
-    const firstPath = DijkstraEngine.findShortestPath(sourceId, targetId, nodes, edges);
+    const firstPath = DijkstraEngine.findShortestPath(sourceId, targetId, nodes, edges, new Set(), fuzzy);
     if (!firstPath.found) {
       return {
         sourceNode: srcNode,
@@ -341,6 +408,7 @@ export class DijkstraEngine {
             nodesForSpur,
             edges,
             excludedEdges,
+            fuzzy,
           );
 
           if (spurPath.found && spurPath.path.length > 1) {
@@ -348,6 +416,7 @@ export class DijkstraEngine {
               node: NodeRecord;
               edgeToNext?: EdgeRecord | undefined;
               confidence?: number | undefined;
+              fuzzyStepImpedance?: number | undefined;
             }[] = [];
 
             // Add root steps up to i - 1
@@ -356,6 +425,7 @@ export class DijkstraEngine {
                 node: rootPath[r]!.node,
                 edgeToNext: rootPath[r]!.edgeToNext,
                 confidence: rootPath[r]!.confidence,
+                fuzzyStepImpedance: rootPath[r]!.fuzzyStepImpedance,
               });
             }
 
@@ -365,6 +435,7 @@ export class DijkstraEngine {
                 node: spurPath.path[s]!.node,
                 edgeToNext: spurPath.path[s]!.edgeToNext,
                 confidence: spurPath.path[s]!.confidence,
+                fuzzyStepImpedance: spurPath.path[s]!.fuzzyStepImpedance,
               });
             }
 
@@ -375,6 +446,8 @@ export class DijkstraEngine {
               }
             }
 
+            const fuzzyEval = fuzzy ? FuzzyInferenceEngine.evaluatePathImpedance(combinedSteps) : undefined;
+
             const candidate: PathResult = {
               sourceNode: srcNode,
               targetNode: dstNode,
@@ -383,6 +456,8 @@ export class DijkstraEngine {
               cumulativeConfidence: Math.round(cumProb * 1000) / 1000,
               hops: combinedSteps.length - 1,
               cost: Math.round(-Math.log(Math.max(1e-6, cumProb)) * 1000) / 1000,
+              fuzzyResistance: fuzzyEval?.rawScore,
+              fuzzyEvaluation: fuzzyEval,
             };
 
             const sig = candidate.path.map((s) => s.node.id).join("->");

@@ -160,4 +160,16 @@ export function prosesQRIS(transaksiId: string, jumlah: number): boolean {
     expect(output).toContain("Fuzzy Defuzzified");
     expect(output).toContain("Fuzzy Profile");
   }, 30_000);
+
+  it("finds shortest path with --fuzzy impedance weighting", () => {
+    const output = execSync(`node ${CLI_PATH} path prosesQRIS prosesQRIS ${CLI_FIXTURE} --fuzzy`).toString();
+    expect(output).toContain("Ruas Shortest Path Traversal");
+    expect(output).toContain("Fuzzy Resistance");
+    expect(output).toContain("Fuzzy Rationale");
+  }, 30_000);
+
+  it("detects architectural code smells with smell command", () => {
+    const output = execSync(`node ${CLI_PATH} smell ${CLI_FIXTURE}`).toString();
+    expect(output).toContain("Ruas Systematic Fuzzy Smell Detection");
+  }, 30_000);
 });

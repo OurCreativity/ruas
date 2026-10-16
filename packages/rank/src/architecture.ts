@@ -4,6 +4,7 @@ import type {
   DijkstraHorizonResult,
   EdgeRecord,
   FuzzyEvaluationResult,
+  FuzzySmellItem,
   KPathResult,
   NodeRecord,
   OrphanInfo,
@@ -295,6 +296,8 @@ export class ArchitectureAnalyzer {
         : `Clean architectural boundaries with 0 circular dependency cycles and ${godNodes.length} dominant hubs.`,
     };
 
+    const fuzzySmells = ArchitectureAnalyzer.detectFuzzySmells(nodes, edges);
+
     return {
       score,
       grade,
@@ -305,20 +308,75 @@ export class ArchitectureAnalyzer {
       subsystemCouplings,
       godNodes,
       fuzzyEvaluation,
+      fuzzySmells,
     };
   }
 
   /**
+   * Detects code smells (Dead Code candidates, God Components) using systematic fuzzy inference.
+   */
+  public static detectFuzzySmells(
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+  ): readonly FuzzySmellItem[] {
+    const inDegreeMap = new Map<string, number>();
+    const outDegreeMap = new Map<string, number>();
+
+    for (const e of edges) {
+      outDegreeMap.set(e.srcId, (outDegreeMap.get(e.srcId) ?? 0) + 1);
+      inDegreeMap.set(e.dstId, (inDegreeMap.get(e.dstId) ?? 0) + 1);
+    }
+
+    const smells: FuzzySmellItem[] = [];
+
+    for (const n of nodes) {
+      const inDeg = inDegreeMap.get(n.id) ?? 0;
+      const outDeg = outDegreeMap.get(n.id) ?? 0;
+      const totalDeg = inDeg + outDeg;
+
+      // 1. Evaluate Dead Code smell (inDegree == 0)
+      if (inDeg === 0) {
+        const isExported = (n.signature !== null && n.signature.includes("export")) || n.name.startsWith("export");
+        const deadEval = FuzzyInferenceEngine.evaluateDeadCodeLikelihood(n, inDeg, outDeg, isExported);
+        if (deadEval.rawScore >= 50) {
+          smells.push({
+            node: n,
+            smellType: "DeadCode",
+            evaluation: deadEval,
+          });
+        }
+      }
+
+      // 2. Evaluate God Component smell (extreme coupling)
+      if (totalDeg >= 12) {
+        const godEval = FuzzyInferenceEngine.evaluateGodComponentLikelihood(n, totalDeg);
+        if (godEval.rawScore >= 50) {
+          smells.push({
+            node: n,
+            smellType: "GodComponent",
+            evaluation: godEval,
+          });
+        }
+      }
+    }
+
+    // Sort by highest fuzzy risk score
+    smells.sort((a, b) => b.evaluation.rawScore - a.evaluation.rawScore);
+    return smells;
+  }
+
+  /**
    * Finds the shortest call/dependency path between a Source Node and a Target Node
-   * using Dijkstra's algorithm weighted by Bayesian edge confidence (-ln(p)).
+   * using Dijkstra's algorithm weighted by Bayesian edge confidence (-ln(p)) or Fuzzy impedance.
    */
   public static findPath(
     sourceId: string,
     targetId: string,
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
+    fuzzy = false,
   ): PathResult {
-    return DijkstraEngine.findShortestPath(sourceId, targetId, nodes, edges);
+    return DijkstraEngine.findShortestPath(sourceId, targetId, nodes, edges, new Set(), fuzzy);
   }
 
   /**
@@ -330,8 +388,9 @@ export class ArchitectureAnalyzer {
     nodes: readonly NodeRecord[],
     edges: readonly EdgeRecord[],
     k = 3,
+    fuzzy = false,
   ): KPathResult {
-    return DijkstraEngine.findKShortestPaths(sourceId, targetId, nodes, edges, k);
+    return DijkstraEngine.findKShortestPaths(sourceId, targetId, nodes, edges, k, fuzzy);
   }
 
   /**

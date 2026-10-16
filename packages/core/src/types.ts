@@ -141,6 +141,12 @@ export interface SubsystemCoupling {
   readonly nodeCount: number;
 }
 
+export interface FuzzySmellItem {
+  readonly node: NodeRecord;
+  readonly smellType: "DeadCode" | "GodComponent" | "FragileBridge";
+  readonly evaluation: FuzzyEvaluationResult;
+}
+
 export interface ArchitectureHealthReport {
   readonly score: number; // 0 - 100
   readonly grade: "A" | "B" | "C" | "D" | "F";
@@ -155,6 +161,7 @@ export interface ArchitectureHealthReport {
     readonly role: string;
   }[];
   readonly fuzzyEvaluation?: FuzzyEvaluationResult | undefined;
+  readonly fuzzySmells?: readonly FuzzySmellItem[] | undefined;
 }
 
 export interface PathResult {
@@ -165,10 +172,13 @@ export interface PathResult {
     readonly node: NodeRecord;
     readonly edgeToNext?: EdgeRecord | undefined;
     readonly confidence?: number | undefined;
+    readonly fuzzyStepImpedance?: number | undefined;
   }[];
   readonly cumulativeConfidence: number;
   readonly hops: number;
   readonly cost?: number;
+  readonly fuzzyResistance?: number | undefined;
+  readonly fuzzyEvaluation?: FuzzyEvaluationResult | undefined;
 }
 
 export interface DijkstraHorizonNode {

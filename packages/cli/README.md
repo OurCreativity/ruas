@@ -198,12 +198,13 @@ ruas trace prosesQRIS --dijkstra --depth 3
 
 ## 🎯 Systematic Fuzzy Logic & Approximate Reasoning (Zadeh 1965)
 
-Ruas v1.2.0 introduces a dual-layer systematic fuzzy intelligence subsystem:
+Ruas v1.2.0 introduces a comprehensive systematic fuzzy intelligence subsystem (Zadeh 1965 / Mamdani FIS):
 
 ### 1. Multi-Signal Fuzzy Matcher (`FuzzyMatcher`)
 - **Damerau-Levenshtein Distance**: Optimal string alignment handling insertions, deletions, substitutions, and adjacent transpositions.
 - **CamelCase & Snake_Case Sub-Token Matching**: Automatically identifies acronyms and sub-word abbreviations (e.g. `pQRIS` ➔ `prosesQRIS`, `invGen` ➔ `InvoiceGenerator`, `calcDisc` ➔ `calculateDirectDiscount`).
 - **Jaro-Winkler Prefix Bonus & Trigram Dice Coefficient**: Yields continuous fuzzy similarity scores $[0.0, 1.0]$.
+- **In-Browser 60 FPS Visual Search**: `ruas ui` integrates real-time clientside fuzzy matching with match percentage and acronym badges directly on the HUD.
 ```bash
 ruas fuzzy pQRIS .
 ruas fuzzy invGen . --threshold 0.35
@@ -216,6 +217,25 @@ Replaces brittle step functions with continuous triangular (`trimf`) and trapezo
 ```bash
 ruas ask "proses pembayaran" --fuzzy --roast
 ruas audit . --fuzzy
+```
+
+### 3. Fuzzy-Weighted Dijkstra Traversal (Lowest Friction & Risk Path)
+In addition to standard Bayesian log-likelihood Dijkstra, Ruas computes edge friction multipliers $f(e) \in [1.0, 3.5]$ through Mamdani FIS:
+$$w_{\text{fuzzy}}(e) = w_{\text{bayesian}}(e) \times f(e), \quad w_{\text{fuzzy}}(e) \ge 0$$
+Minimizing this path ensures the route avoids congested hubs, fragile module boundaries, and uncertain edges.
+```bash
+# Find minimal friction path between two symbols
+ruas path checkoutOrder calculateDiscount . --fuzzy
+
+# Discover top 3 alternative paths with fuzzy impedance evaluations
+ruas path checkoutOrder calculateDiscount . -k 3 --fuzzy
+```
+
+### 4. Systematic Fuzzy Smell Detection
+Evaluates dead-code likelihood and God Component violations using multi-input degrees of truth:
+```bash
+ruas smell .
+ruas smell . --json
 ```
 
 ---

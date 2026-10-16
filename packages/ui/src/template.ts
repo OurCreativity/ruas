@@ -186,6 +186,84 @@ export function renderGraphHtml(payload: GraphPayload): string {
       font-size: 0.85rem;
     }
 
+    .fuzzy-dropdown {
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 0;
+      width: 360px;
+      background: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--border-glass-active);
+      border-radius: 12px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.7);
+      max-height: 280px;
+      overflow-y: auto;
+      z-index: 100;
+      display: none;
+    }
+
+    .fuzzy-dropdown.active {
+      display: block;
+    }
+
+    .fuzzy-item {
+      padding: 10px 14px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      transition: background 0.15s ease;
+    }
+
+    .fuzzy-item:last-child {
+      border-bottom: none;
+    }
+
+    .fuzzy-item:hover {
+      background: rgba(6, 182, 212, 0.15);
+    }
+
+    .fuzzy-item-left {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      overflow: hidden;
+    }
+
+    .fuzzy-item-name {
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #FFF;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+    }
+
+    .fuzzy-item-meta {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .fuzzy-badge {
+      font-size: 0.68rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(6, 182, 212, 0.2);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(6, 182, 212, 0.4);
+      white-space: nowrap;
+    }
+
+    .fuzzy-badge.acronym {
+      background: rgba(139, 92, 246, 0.2);
+      color: var(--accent-violet);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+
     .hud-controls {
       display: flex;
       align-items: center;
@@ -508,7 +586,8 @@ export function renderGraphHtml(payload: GraphPayload): string {
 
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="Cari fungsi, interface, route...">
+      <input type="text" id="search-input" placeholder="Cari simbol, akronim (misal: pQRIS)..." autocomplete="off">
+      <div class="fuzzy-dropdown" id="fuzzy-dropdown"></div>
     </div>
 
     <div class="hud-controls">
@@ -1018,11 +1097,144 @@ export function renderGraphHtml(payload: GraphPayload): string {
         btnRoast.classList.toggle('active', roastMode);
       });
 
+      const fuzzyDropdown = document.getElementById('fuzzy-dropdown');
+
+      function damerauLevenshtein(s1, s2) {
+        const len1 = s1.length;
+        const len2 = s2.length;
+        if (len1 === 0) return len2;
+        if (len2 === 0) return len1;
+        const d = Array.from({ length: len1 + 1 }, () => new Array(len2 + 1).fill(0));
+        for (let i = 0; i <= len1; i++) d[i][0] = i;
+        for (let j = 0; j <= len2; j++) d[0][j] = j;
+
+        for (let i = 1; i <= len1; i++) {
+          for (let j = 1; j <= len2; j++) {
+            const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+            d[i][j] = Math.min(
+              d[i - 1][j] + 1,
+              d[i][j - 1] + 1,
+              d[i - 1][j - 1] + cost
+            );
+            if (i > 1 && j > 1 && s1[i - 1] === s2[j - 2] && s1[i - 2] === s2[j - 1]) {
+              d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1);
+            }
+          }
+        }
+        return d[len1][len2];
+      }
+
+      function splitIdentifier(name) {
+        return name
+          .replace(/([a-z\d])([A-Z])/g, "$1 $2")
+          .replace(/([A-Z]+)([A-Z][a-z\d]+)/g, "$1 $2")
+          .split(/[\s_\-.:]+/)
+          .filter(Boolean)
+          .map(t => t.toLowerCase());
+      }
+
+      function acronymMatch(query, target) {
+        const qParts = splitIdentifier(query);
+        const tParts = splitIdentifier(target);
+        if (qParts.length === 0 || tParts.length === 0) return false;
+        let tIdx = 0;
+        for (let qIdx = 0; qIdx < qParts.length; qIdx++) {
+          const q = qParts[qIdx];
+          let matched = false;
+          while (tIdx < tParts.length) {
+            const t = tParts[tIdx++];
+            if (t.startsWith(q) || (q.length === 1 && t[0] === q)) {
+              matched = true;
+              break;
+            }
+          }
+          if (!matched) return false;
+        }
+        return true;
+      }
+
+      function evaluateFuzzyScore(query, target) {
+        const qLow = query.toLowerCase();
+        const tLow = target.toLowerCase();
+        if (qLow === tLow) return { score: 1.0, isAcronym: false };
+        if (tLow.includes(qLow)) {
+          const prefixBonus = tLow.startsWith(qLow) ? 0.2 : 0.1;
+          const ratio = Math.min(0.7, qLow.length / tLow.length);
+          return { score: Math.min(0.99, ratio + prefixBonus), isAcronym: false };
+        }
+        if (acronymMatch(query, target)) {
+          return { score: 0.92, isAcronym: true };
+        }
+        const dist = damerauLevenshtein(qLow, tLow);
+        const maxLen = Math.max(qLow.length, tLow.length);
+        const sim = Math.max(0, 1.0 - dist / maxLen);
+        return { score: Math.round(sim * 100) / 100, isAcronym: false };
+      }
+
+      function renderFuzzyResults(matches) {
+        if (!fuzzyDropdown) return;
+        if (matches.length === 0) {
+          fuzzyDropdown.classList.remove('active');
+          fuzzyDropdown.innerHTML = '';
+          return;
+        }
+
+        fuzzyDropdown.innerHTML = matches.map(m => 
+          '<div class="fuzzy-item" data-node-id="' + m.node.id + '">' +
+            '<div class="fuzzy-item-left">' +
+              '<span class="fuzzy-item-name">' + m.node.name + '</span>' +
+              '<span class="fuzzy-item-meta">' + m.node.kind + ' • ' + m.node.file + '</span>' +
+            '</div>' +
+            '<span class="fuzzy-badge ' + (m.isAcronym ? 'acronym' : '') + '">' +
+              (m.isAcronym ? '⚡ Acronym' : Math.round(m.score * 100) + '% Match') +
+            '</span>' +
+          '</div>'
+        ).join('');
+
+        fuzzyDropdown.classList.add('active');
+
+        fuzzyDropdown.querySelectorAll('.fuzzy-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const nodeId = item.getAttribute('data-node-id');
+            const targetNode = nodes.find(n => n.id === nodeId);
+            if (targetNode) {
+              panToNode(targetNode);
+              selectedNode = targetNode;
+              updateInspectorDrawer(targetNode);
+              drawer.classList.add('active');
+              fuzzyDropdown.classList.remove('active');
+            }
+          });
+        });
+      }
+
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-box')) {
+          fuzzyDropdown?.classList.remove('active');
+        }
+      });
+
       searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.trim().toLowerCase();
-        const found = nodes.find(n => n.name.toLowerCase().includes(searchQuery));
-        if (found && searchQuery.length > 2) {
-          panToNode(found);
+        searchQuery = e.target.value.trim();
+        if (searchQuery.length < 2) {
+          fuzzyDropdown?.classList.remove('active');
+          return;
+        }
+
+        const candidates = [];
+        for (const n of nodes) {
+          const res = evaluateFuzzyScore(searchQuery, n.name);
+          if (res.score >= 0.45) {
+            candidates.push({ node: n, score: res.score, isAcronym: res.isAcronym });
+          }
+        }
+
+        candidates.sort((a, b) => b.score - a.score);
+        const topMatches = candidates.slice(0, 5);
+        renderFuzzyResults(topMatches);
+
+        if (topMatches.length > 0 && searchQuery.length >= 3) {
+          panToNode(topMatches[0].node);
         }
       });
     })();

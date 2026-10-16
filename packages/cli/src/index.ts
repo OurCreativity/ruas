@@ -589,6 +589,19 @@ program
         console.log();
       }
 
+      if (options.fuzzy && health.fuzzySmells && health.fuzzySmells.length > 0) {
+        console.log(pc.magenta(pc.bold("  🧠 Fuzzy Code Smells (Mamdani FIS Defuzzification):")));
+        for (const s of health.fuzzySmells.slice(0, 8)) {
+          const typeBadge = s.smellType === "DeadCode" ? pc.yellow("DeadCode") : pc.red("GodComponent");
+          console.log(`    • ${typeBadge} [${s.evaluation.rawScore}% ${s.evaluation.crispGrade}]: ${pc.white(pc.bold(s.node.name))} ${pc.dim(`(${s.node.qualifiedName})`)}`);
+          console.log(`      ${pc.dim(s.evaluation.rationale)}`);
+        }
+        if (health.fuzzySmells.length > 8) {
+          console.log(pc.dim(`    ... and ${health.fuzzySmells.length - 8} more smell candidates.`));
+        }
+        console.log();
+      }
+
       if (health.subsystemCouplings.length > 0) {
         console.log(pc.cyan(pc.bold("  📊 Subsystem Coupling & Instability (Robert C. Martin):")));
         for (const s of health.subsystemCouplings.slice(0, 6)) {
@@ -609,6 +622,64 @@ program
     }
   });
 
+// --- ruas smell ---
+program
+  .command("smell")
+  .description("Detect architectural code smells (dead-code, god-components) with systematic fuzzy certainty")
+  .argument("[path]", "Path to project directory", ".")
+  .option("--db <path>", "Custom database path")
+  .option("--json", "Output results in JSON format", false)
+  .action(async (targetPath: string, options: { db?: string; json?: boolean }) => {
+    const rootDir = resolve(targetPath);
+    const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
+
+    if (!existsSync(dbPath)) {
+      if (options.json) {
+        console.log(JSON.stringify({ error: "Database not found. Run 'ruas index' first." }, null, 2));
+      } else {
+        console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
+      }
+      return;
+    }
+
+    const storage = new SqliteStorage({ dbPath });
+    try {
+      await storage.init();
+      const nodes = await storage.getAllNodes();
+      const edges = await storage.getAllEdges();
+      await storage.close();
+
+      const smells = ArchitectureAnalyzer.detectFuzzySmells(nodes, edges);
+
+      if (options.json) {
+        console.log(JSON.stringify(smells, null, 2));
+        return;
+      }
+
+      console.log(pc.cyan(`\n🧠 Ruas Systematic Fuzzy Smell Detection — ${pc.bold(rootDir)}`));
+      console.log(`  ${pc.bold("Total Detected Smells:")} ${smells.length > 0 ? pc.yellow(smells.length) : pc.green("0 (Clean)")}\n`);
+
+      if (smells.length === 0) {
+        console.log(pc.green("  ✔ No significant architectural smells detected with fuzzy certainty.\n"));
+        return;
+      }
+
+      for (const s of smells) {
+        const badge = s.smellType === "DeadCode" ? pc.yellow(pc.bold("👻 DeadCode")) : pc.red(pc.bold("⚡ GodComponent"));
+        const gradeColor = s.evaluation.rawScore >= 80 ? pc.red : s.evaluation.rawScore >= 55 ? pc.yellow : pc.cyan;
+        console.log(`  ${badge} ${pc.white(pc.bold(s.node.name))} ${pc.dim(`(${s.node.qualifiedName})`)}`);
+        console.log(`     Certainty: ${gradeColor(pc.bold(`${s.evaluation.rawScore}% [${s.evaluation.crispGrade}]`))}`);
+        console.log(`     Rationale: ${pc.dim(s.evaluation.rationale)}`);
+        console.log();
+      }
+    } catch (error) {
+      await storage.close();
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(pc.red(`\n✖ Error during smell detection: ${message}\n`));
+      process.exit(1);
+    }
+  });
+
 // --- ruas path ---
 program
   .command("path")
@@ -617,12 +688,14 @@ program
   .argument("<target>", "Target symbol name or qualified name")
   .argument("[path]", "Path to project directory", ".")
   .option("-k, --k <number>", "Number of alternative shortest paths to discover using Yen's algorithm", "1")
+  .option("--fuzzy", "Apply Mamdani fuzzy impedance weights to compute lowest friction trajectory", false)
   .option("--db <path>", "Custom database path")
   .option("--json", "Output results in JSON format", false)
-  .action(async (source: string, target: string, targetPath: string, options: { k?: string; db?: string; json?: boolean }) => {
+  .action(async (source: string, target: string, targetPath: string, options: { k?: string; fuzzy?: boolean; db?: string; json?: boolean }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
     const k = Math.max(1, parseInt(options.k ?? "1", 10));
+    const isFuzzy = Boolean(options.fuzzy);
 
     if (!existsSync(dbPath)) {
       if (options.json) {
@@ -658,14 +731,14 @@ program
       }
 
       if (k > 1) {
-        const kResult = ArchitectureAnalyzer.findKPaths(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges, k);
+        const kResult = ArchitectureAnalyzer.findKPaths(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges, k, isFuzzy);
 
         if (options.json) {
           console.log(JSON.stringify(kResult, null, 2));
           return;
         }
 
-        console.log(pc.cyan(`\n🔗 Ruas Dijkstra K-Shortest Path Traversal (Top ${kResult.paths.length} Routes)`));
+        console.log(pc.cyan(`\n🔗 Ruas Dijkstra K-Shortest Path Traversal (${isFuzzy ? "Mamdani Fuzzy FIS" : "Bayesian Calibration"})`));
         console.log(`  ${pc.bold("Origin:")}        ${pc.green(kResult.sourceNode.qualifiedName)}`);
         console.log(`  ${pc.bold("Destination:")}   ${pc.green(kResult.targetNode.qualifiedName)}`);
 
@@ -677,13 +750,18 @@ program
         kResult.paths.forEach((p, idx) => {
           const badge = idx === 0 ? pc.green(pc.bold("⭐ Optimal Route #1")) : pc.cyan(`Alternative Route #${idx + 1}`);
           const costDisplay = p.cost !== undefined ? `, cost ${p.cost.toFixed(3)}` : "";
-          console.log(`\n  ${badge} ${pc.dim(`(${p.hops} hops, ${(p.cumulativeConfidence * 100).toFixed(1)}% Bayesian confidence${costDisplay})`)}`);
+          const fuzzyDisplay = p.fuzzyResistance !== undefined ? `, friction ${p.fuzzyResistance}/100` : "";
+          console.log(`\n  ${badge} ${pc.dim(`(${p.hops} hops, ${(p.cumulativeConfidence * 100).toFixed(1)}% confidence${costDisplay}${fuzzyDisplay})`)}`);
+          if (p.fuzzyEvaluation) {
+            console.log(`     ${pc.magenta("🧠 Fuzzy Risk:")} ${p.fuzzyEvaluation.crispGrade} (${p.fuzzyEvaluation.rawScore}/100) — ${pc.dim(p.fuzzyEvaluation.rationale)}`);
+          }
           for (let i = 0; i < p.path.length; i++) {
             const step = p.path[i]!;
             console.log(`    ${pc.bold(`${i + 1}.`)} ${pc.white(step.node.name)} ${pc.dim(`(${step.node.kind} at ${step.node.qualifiedName})`)}`);
             if (step.edgeToNext) {
               const conf = step.confidence !== undefined ? `[${Math.round(step.confidence * 100)}% conf]` : "";
-              console.log(`       ${pc.cyan("└──▶")} ${pc.magenta(step.edgeToNext.kind)} ${pc.dim(conf)} ${pc.cyan("──▶")}`);
+              const fImp = step.fuzzyStepImpedance !== undefined ? ` [impedance: ${step.fuzzyStepImpedance}]` : "";
+              console.log(`       ${pc.cyan("└──▶")} ${pc.magenta(step.edgeToNext.kind)} ${pc.dim(conf)}${pc.magenta(fImp)} ${pc.cyan("──▶")}`);
             }
           }
         });
@@ -691,14 +769,14 @@ program
         return;
       }
 
-      const result = ArchitectureAnalyzer.findPath(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges);
+      const result = ArchitectureAnalyzer.findPath(srcCandidates[0]!.id, dstCandidates[0]!.id, nodes, edges, isFuzzy);
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2));
         return;
       }
 
-      console.log(pc.cyan(`\n🔗 Ruas Shortest Path Traversal (Dijkstra Minimal Bayesian Resistance)`));
+      console.log(pc.cyan(`\n🔗 Ruas Shortest Path Traversal (${isFuzzy ? "Mamdani Fuzzy Minimal Resistance" : "Dijkstra Minimal Bayesian Resistance"})`));
       console.log(`  ${pc.bold("Origin:")}        ${pc.green(result.sourceNode.qualifiedName)}`);
       console.log(`  ${pc.bold("Destination:")}   ${pc.green(result.targetNode.qualifiedName)}`);
 
@@ -708,14 +786,20 @@ program
       }
 
       console.log(`  ${pc.bold("Hops:")}          ${result.hops}`);
-      console.log(`  ${pc.bold("Confidence:")}    ${pc.green(`${(result.cumulativeConfidence * 100).toFixed(1)}% (Bayesian posterior)`)}\n`);
+      console.log(`  ${pc.bold("Confidence:")}    ${pc.green(`${(result.cumulativeConfidence * 100).toFixed(1)}% (Bayesian posterior)`)}`);
+      if (result.fuzzyEvaluation) {
+        console.log(`  ${pc.bold("Fuzzy Resistance:")} ${pc.magenta(`${result.fuzzyEvaluation.rawScore}/100 [${result.fuzzyEvaluation.crispGrade}]`)}`);
+        console.log(`  ${pc.bold("Fuzzy Rationale:")}  ${pc.dim(result.fuzzyEvaluation.rationale)}`);
+      }
+      console.log();
 
       for (let i = 0; i < result.path.length; i++) {
         const step = result.path[i]!;
         console.log(`  ${pc.bold(`${i + 1}.`)} ${pc.white(pc.bold(step.node.name))} ${pc.dim(`(${step.node.kind} at ${step.node.qualifiedName})`)}`);
         if (step.edgeToNext) {
           const conf = step.confidence !== undefined ? `[${Math.round(step.confidence * 100)}% conf]` : "";
-          console.log(`     ${pc.cyan("└──▶")} ${pc.magenta(step.edgeToNext.kind)} ${pc.dim(conf)} ${pc.cyan("──▶")}`);
+          const fImp = step.fuzzyStepImpedance !== undefined ? ` [impedance: ${step.fuzzyStepImpedance}]` : "";
+          console.log(`     ${pc.cyan("└──▶")} ${pc.magenta(step.edgeToNext.kind)} ${pc.dim(conf)}${pc.magenta(fImp)} ${pc.cyan("──▶")}`);
         }
       }
       console.log();
