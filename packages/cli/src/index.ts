@@ -23,7 +23,7 @@ const program = new Command();
 program
   .name("ruas")
   .description("Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval")
-  .version("1.1.1");
+  .version("1.2.0");
 
 // --- ruas index ---
 program
@@ -315,13 +315,13 @@ program
   .alias("handover")
   .description("Generate onboarding handover documentation in Bahasa Indonesia with zero uncited claims")
   .argument("[path]", "Path to project directory", ".")
-  .option("--out <file>", "Output markdown file path", "docs/HANDOVER.md")
+  .option("--out <file>", "Output markdown file path (default: <path>/docs/HANDOVER.md)")
   .option("--db <path>", "Custom database path")
   .option("--title <name>", "Custom project title")
   .action(async (targetPath: string, options: { out?: string; db?: string; title?: string }) => {
     const rootDir = resolve(targetPath);
     const dbPath = options.db ? resolve(options.db) : join(rootDir, ".ruas", "ruas.db");
-    const outPath = resolve(options.out ?? join(rootDir, "docs", "HANDOVER.md"));
+    const outPath = resolve(rootDir, options.out ?? "docs/HANDOVER.md");
 
     if (!existsSync(dbPath)) {
       console.log(pc.yellow(`\n⚠ No Ruas database found at ${pc.dim(dbPath)}`));
@@ -456,28 +456,28 @@ program
       const isHtml = options.html !== undefined || (!options.mermaid && !options.dot && !options.json);
 
       if (isHtml) {
-        const outPath = resolve(typeof options.html === "string" ? options.html : join(rootDir, "docs", "graph.html"));
+        const outPath = resolve(rootDir, typeof options.html === "string" ? options.html : "docs/graph.html");
         console.log(pc.cyan(`\n📊 Exporting Standalone Graph Explorer HTML...`));
         await exportStandaloneHtml(storage, outPath, targetPath === "." ? "Root Repository" : targetPath);
         console.log(pc.green(`✔ Standalone HTML visualizer exported: ${pc.cyan(outPath)}`));
       }
 
       if (options.mermaid !== undefined) {
-        const outPath = resolve(typeof options.mermaid === "string" ? options.mermaid : join(rootDir, "docs", "graph.mmd"));
+        const outPath = resolve(rootDir, typeof options.mermaid === "string" ? options.mermaid : "docs/graph.mmd");
         console.log(pc.cyan(`\n📊 Exporting Mermaid Diagram...`));
         await exportMermaidFile(storage, outPath);
         console.log(pc.green(`✔ Mermaid diagram exported: ${pc.cyan(outPath)}`));
       }
 
       if (options.dot !== undefined) {
-        const outPath = resolve(typeof options.dot === "string" ? options.dot : join(rootDir, "docs", "graph.dot"));
+        const outPath = resolve(rootDir, typeof options.dot === "string" ? options.dot : "docs/graph.dot");
         console.log(pc.cyan(`\n📊 Exporting Graphviz DOT Diagram...`));
         await exportDotFile(storage, outPath);
         console.log(pc.green(`✔ Graphviz DOT exported: ${pc.cyan(outPath)}`));
       }
 
       if (options.json !== undefined) {
-        const outPath = resolve(typeof options.json === "string" ? options.json : join(rootDir, "docs", "graph.json"));
+        const outPath = resolve(rootDir, typeof options.json === "string" ? options.json : "docs/graph.json");
         console.log(pc.cyan(`\n📊 Exporting Graph JSON...`));
         await exportJsonGraph(storage, outPath);
         console.log(pc.green(`✔ Machine-readable graph JSON exported: ${pc.cyan(outPath)}`));

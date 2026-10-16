@@ -1,6 +1,6 @@
 {
   "name": "@fk0u/ruas",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "description": "Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval",
   "type": "module",
   "main": "./dist/index.js",
