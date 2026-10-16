@@ -1,370 +1,274 @@
+<div align="center">
+
+<!-- Banner: generate with docs/BANNER_PROMPT.md, save as assets/banner.png -->
+<img src="assets/banner.png" alt="Ruas — Code intelligence that tells the truth" width="100%">
+
 # 🌿 Ruas
 
-> **Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval**  
-> Offline-first, zero-external-API, statistically calibrated code property graph for AI agents (via MCP) and human developers.
+**Offline-first code intelligence for AI agents and humans.**
+Multilingual graph retrieval · Bayesian-calibrated blast radius · Fuzzy architecture linting · MCP-native.
+
+[![npm](https://img.shields.io/npm/v/@fk0u/ruas?style=for-the-badge&logo=npm&color=CB3837)](https://www.npmjs.com/package/@fk0u/ruas)
+[![CI](https://img.shields.io/github/actions/workflow/status/OurCreativity/ruas/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/OurCreativity/ruas/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
+![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20FTS5-003B57?logo=sqlite&logoColor=white)
+![MCP](https://img.shields.io/badge/MCP-8%20tools-7C3AED)
+![Tests](https://img.shields.io/badge/tests-100%20passing-brightgreen)
+![Offline](https://img.shields.io/badge/cloud%20APIs-zero-orange)
+![Languages](https://img.shields.io/badge/parses-TS%20%C2%B7%20PHP%20%C2%B7%20Python-informational)
+![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)
+
+[Quick Start](#-quick-start) · [How it works](#-how-it-works) · [CLI](#-cli-cheat-sheet) · [MCP](#-mcp-for-ai-agents) · [Benchmarks](#-benchmarks) · [Contributing](CONTRIBUTING.md)
+
+</div>
 
 ---
 
-## ⚡ Product Philosophy
+## ✨ Why Ruas?
 
-Most code intelligence tools sugarcoat code quality and assume monolithic, textbook English architectures. In reality, global production codebases are messy, multilingual, full of domain slang, and fraught with hidden traps.
+Real codebases are messy: mixed Indonesian/English identifiers, acronyms (`pQRIS`, `invGen`), hidden coupling. Generic tools hand your AI agent raw files and let it guess. Ruas gives it a **calibrated graph** instead.
 
-**Ruas** is an **offline-first, zero-external-API, statistically calibrated universal code intelligence engine** inspired by ASEAN developer culture:
-1. **Universal Multilingual & Mixed-Identifier Intelligence:** Flawlessly navigates mixed languages, local jargon, and acronyms (Indonesian, English, colloquial abbreviations) without needing heavy vector databases or cloud embedding APIs.
-2. **Brutally Honest Blast Radius ("Emotional Damage"):** Instead of generic summaries, Ruas calculates exact, calibrated dependency risk and call-chain vulnerabilities—telling developers and AI agents mercilessly what will break in production.
-3. **Probabilistic Edge Confidence:** Bayesian Beta-Bernoulli conjugate models ($\alpha, \beta$) with 95% credible intervals, preventing AI agents from hallucinating fictitious call paths.
-4. **Lightweight & Blazing Fast:** Sub-millisecond FTS5 + Trigram + Personalized PageRank + RRF, running entirely local on an 8GB laptop.
-
----
-
-## 🏛 Architecture Topology
-
-Ruas is structured as a high-performance pnpm workspace with strict boundary decoupling:
-
-```text
-                           ┌────────────────────────┐
-                           │      CLI (@ruas/cli)   │
-                           │ index | ask | watch | … │
-                           └───────────┬────────────┘
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
-  ┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
-  │  MCP (@ruas/mcp) │       │ Docgen (@/docgen)│       │ Eval (@ruas/eval)│
-  │  stdio protocol  │       │ (Planned M5)     │       │ CI benchmark &   │
-  │ budgeted packets │       │                  │       │ Wilcoxon testing │
-  └─────────┬────────┘       └─────────┬────────┘       └─────────┬────────┘
-            │                          │                          │
-            └──────────────────────────┼──────────────────────────┘
-                                       ▼
-                             ┌──────────────────┐
-                             │ Rank (@ruas/rank)│
-                             │ FTS5 + Trigram + │
-                             │   PPR + RRF      │
-                             └─────────┬────────┘
-                                       │
-            ┌──────────────────────────┼──────────────────────────┐
-            ▼                          ▼                          ▼
-  ┌──────────────────┐       ┌──────────────────┐       ┌──────────────────┐
-  │Resolv (@/resolver│       │ NLP (@ruas/nlp)  │       │Index (@ruas/index│
-  │Beta-Bernoulli CI │       │Nazief-Adriani    │       │ Merkle dirty-set │
-  │2-pass evidence   │       │glossary expander │       │  watcher engine  │
-  └─────────┬────────┘       └─────────┬────────┘       └─────────┬────────┘
-            │                          │                          │
-            └──────────────────────────┼──────────────────────────┘
-                                       ▼
-                             ┌──────────────────┐
-                             │Store (@ruas/store│
-                             │SQLite WAL + FTS5 │
-                             │  (node:sqlite)   │
-                             └─────────┬────────┘
-                                       ▼
-                             ┌──────────────────┐
-                             │Core (@ruas/core) │
-                             │Zod schemas & IDs │
-                             └──────────────────┘
-```
+| | Typical tools | **Ruas** |
+|---|---|---|
+| Search | English-only, embeddings via cloud API | Multilingual BM25 + trigram + glossary + Indonesian stemmer, **fully local** |
+| Call paths | "Probably calls…" | Beta-Bernoulli edge confidence with **95% credible intervals** |
+| Impact | Hop count | **Blast radius** with confidence decay (Dijkstra / Yen top-K) |
+| Architecture | Binary pass/fail rules | **Mamdani fuzzy** violation degrees + purity grade A–F |
+| AI memory | Re-scan every session | Persistent `RUAS_CONTEXT.md` "vibe memory" |
+| Footprint | Vector DB + API keys | One SQLite file, runs on an 8 GB laptop |
 
 ---
 
 ## 🚀 Quick Start
 
-### Installation
-
-#### Option 1: Run instantly with `npx` (No Install Required)
 ```bash
+npx @fk0u/ruas index .
 npx @fk0u/ruas ask "fungsi bayar qris" --roast
 ```
 
-#### Option 2: Install globally via `npm` or `pnpm`
-```bash
-# Global install via npm (provides 'ruas' command)
-npm install -g @fk0u/ruas
+<details>
+<summary><b>Install globally / from source</b></summary>
 
-# Or via pnpm
-pnpm add -g @fk0u/ruas
-```
-
-#### Option 3: Local Development (from source)
 ```bash
+npm install -g @fk0u/ruas        # or: pnpm add -g @fk0u/ruas
+
 git clone https://github.com/OurCreativity/ruas.git
-cd ruas
-pnpm install
-pnpm build
-pnpm test
+cd ruas && pnpm install && pnpm build && pnpm test
+```
+Requires Node ≥ 22 (uses built-in `node:sqlite`).
+</details>
+
+---
+
+## 🧩 How it works
+
+```mermaid
+flowchart LR
+    A[Source files<br/>TS · PHP · Python] -->|tree-sitter WASM| B[Parser]
+    B --> C[Resolver<br/>2-pass evidence +<br/>Beta-Bernoulli CI]
+    C --> D[(Store<br/>SQLite WAL + FTS5)]
+    E[Merkle dirty-set<br/>file watcher] -->|incremental| B
+    D --> F[Rank<br/>BM25 + Trigram + PPR + RRF]
+    N[NLP<br/>glossary + Nazief-Adriani] --> F
+    F --> G[CLI]
+    F --> H[MCP server]
+    F --> I[Visual UI]
+    F --> J[Docgen / Eval]
+    style D fill:#003B57,color:#fff
+    style H fill:#7C3AED,color:#fff
 ```
 
-### CLI Commands
+### Query pipeline
 
-```bash
-# Index current codebase (cold or incremental)
-ruas index .
+```mermaid
+sequenceDiagram
+    participant U as You / AI agent
+    participant N as NLP
+    participant R as Rank
+    participant S as Store
+    U->>N: "fungsi bayar qris"
+    N->>N: stem + expand (bayar→payment, qris→QRIS)
+    N->>R: expanded terms
+    par parallel retrieval
+        R->>S: FTS5 BM25
+        R->>S: Trigram match
+    end
+    R->>R: Personalized PageRank over call graph
+    R->>R: Reciprocal Rank Fusion
+    R-->>U: ranked symbols + spans + confidence (token-budgeted)
+```
 
-# Check repository graph statistics & health
-ruas status .
+### Package map
 
-# Perform deep architectural audit (cycles, dead code, coupling, health score)
-ruas audit .
-ruas audit . --json
-
-# Trace blast radius and dependency call chain with Bayesian confidence
-ruas trace prosesQRIS .
-ruas trace calculateDiscount --depth 3
-
-# Find shortest dependency/call path between two symbols (Dijkstra algorithm)
-ruas path checkoutOrder calculateDiscount .
-
-# Discover top 3 alternative execution routes using Yen's K-Shortest Path algorithm
-ruas path checkoutOrder calculateDiscount . -k 3
-
-# Compute Single-Source Shortest Path (SSSP) Dijkstra Horizon with Bayesian probability decay
-ruas trace prosesQRIS . --dijkstra --depth 3
-
-# Ask code intelligence with emotional damage roast
-ruas ask "fungsi bayar qris" --roast
-ruas ask "calculate customer discount" --roast
-
-# Systematic Fuzzy Matching (Acronyms, Damerau-Levenshtein, Sub-words, Typo tolerance)
-ruas fuzzy pQRIS .
-ruas fuzzy invGen . --threshold 0.35
-
-# Ask code with Mamdani Fuzzy Risk Evaluation & Linguistic Distribution
-ruas ask "proses pembayaran" --fuzzy --roast
-
-# Codebase architectural audit with Mamdani Fuzzy Fragility Index
-ruas audit . --fuzzy
-
-# Start background live file watcher
-ruas watch .
-
-# Generate onboarding handover documentation with zero uncited claims
-ruas docgen . --out docs/HANDOVER.md
-
-# Launch interactive, glassmorphic visual graph explorer in your browser (60 FPS canvas)
-ruas ui . --port 4200
-
-# Export codebase graph in multiple formats: Standalone HTML, Mermaid, Graphviz DOT, or JSON
-ruas export . --html docs/graph.html
-ruas export . --mermaid docs/graph.mmd
-ruas export . --dot docs/graph.dot
-ruas export . --json docs/graph.json
-
-# Checkpoint working memory and vibe coding state into AI Mother Tongue (RUAS_CONTEXT.md)
-ruas vibe save "Refactor payment flow ke QRIS & fix circular dependency" -f src/checkout.ts -n "Jaga transaksi QRIS tetap atomic"
-
-# Recall previous vibe memory & working context to prevent AI amnesia
-ruas vibe recall
-
-# Synchronize and regenerate RUAS_CONTEXT.md for Cursor / Claude / Antigravity
-ruas vibe sync
-
-# Launch Model Context Protocol (MCP) server for Claude Desktop / Cursor / Antigravity
-ruas mcp .
+```mermaid
+graph TD
+    cli["@ruas/cli"] --> mcp["@ruas/mcp"]
+    cli --> docgen["@ruas/docgen"]
+    cli --> ui["@ruas/ui"]
+    cli --> eval["@ruas/eval"]
+    mcp --> rank["@ruas/rank"]
+    docgen --> rank
+    ui --> rank
+    eval --> rank
+    rank --> resolver["@ruas/resolver"]
+    rank --> nlp["@ruas/nlp"]
+    rank --> indexer["@ruas/indexer"]
+    indexer --> parser["@ruas/parser"]
+    resolver --> store["@ruas/store"]
+    indexer --> store
+    store --> core["@ruas/core"]
+    parser --> core
 ```
 
 ---
 
-## 🧭 Systematic Dijkstra Algorithmic Architecture
+## 🧮 The math (short version)
 
-Ruas v1.0.0 implements a mathematically rigorous graph traversal engine powered by **Dijkstra's Algorithm** and **Yen's K-Shortest Paths**, transforming how developers and AI agents navigate code:
+Edge confidence `p(e) = α / (α+β)` becomes a non-negative cost so Dijkstra finds the **most probable** path, not merely the shortest:
 
-### 1. Bayesian Negative Log-Likelihood Cost Transformation
-Standard Dijkstra requires non-negative edge costs ($w(e) \ge 0$). In code graphs, edges are calibrated with Bayesian Beta-Bernoulli confidence $p(e) = \frac{\alpha}{\alpha + \beta} \in (0, 1]$.
+$$w(e) = -\ln p(e) \quad\Rightarrow\quad \min \sum w(e_i) \iff \max \prod p(e_i)$$
 
-Ruas bridges Bayesian probability and graph theory via the negative log-likelihood mapping:
-$$w(e) = -\ln(p(e)) \ge 0$$
+Fuzzy mode multiplies in a Mamdani friction factor `f(e) ∈ [1, 3.5]` so routes avoid fragile hubs.
 
-Minimizing cumulative Dijkstra resistance:
-$$\min \sum_{i=1}^n w(e_i) = \min \sum_{i=1}^n -\ln(p(e_i)) \iff \max \prod_{i=1}^n p(e_i)$$
-
-This **proves mathematically** that Dijkstra's shortest path finds the trajectory with the **highest joint Bayesian confidence**, rather than merely the fewest raw hops.
-
-### 2. Binary Min-Priority Queue
-Ruas implements an allocation-free binary min-heap with $O(\log V)$ insertions and extractions, operating at sub-millisecond latencies across hundreds of thousands of code nodes.
-
-### 3. Yen's Top-K Shortest Paths
-Beyond the primary path, Ruas uses Yen's algorithm to discover alternative architectural call flows (e.g., fallback payment gateways or alternative error handling branches).
-```bash
-ruas path handlePayment chargeGateway -k 3
-```
-
-### 4. Single-Source Shortest Path (SSSP) Dijkstra Horizon
-By computing Dijkstra distances to all reachable downstream nodes, Ruas establishes an exact **confidence decay horizon**, showing developers the true blast radius before cumulative confidence decays to near-zero.
-```bash
-ruas trace prosesQRIS --dijkstra --depth 3
+```mermaid
+flowchart LR
+    CA[Afferent coupling Ca] --> FIS{{Mamdani FIS<br/>trimf / trapmf}}
+    CE[Efferent coupling Ce] --> FIS
+    CF[Bayesian confidence] --> FIS
+    BR[Blast radius] --> FIS
+    FIS --> FFI[Fuzzy Fragility Index 0–100%]
+    FFI --> L["Clean · Fair · Fragile · Critical"]
 ```
 
 ---
 
-## 🎯 Systematic Fuzzy Logic & Approximate Reasoning (Zadeh 1965)
+## 🛠 CLI cheat sheet
 
-Ruas v1.2.0 introduces a comprehensive systematic fuzzy intelligence subsystem (Zadeh 1965 / Mamdani FIS):
-
-### 1. Multi-Signal Fuzzy Matcher (`FuzzyMatcher`)
-- **Damerau-Levenshtein Distance**: Optimal string alignment handling insertions, deletions, substitutions, and adjacent transpositions.
-- **CamelCase & Snake_Case Sub-Token Matching**: Automatically identifies acronyms and sub-word abbreviations (e.g. `pQRIS` ➔ `prosesQRIS`, `invGen` ➔ `InvoiceGenerator`, `calcDisc` ➔ `calculateDirectDiscount`).
-- **Jaro-Winkler Prefix Bonus & Trigram Dice Coefficient**: Yields continuous fuzzy similarity scores $[0.0, 1.0]$.
-- **In-Browser 60 FPS Visual Search**: `ruas ui` integrates real-time clientside fuzzy matching with match percentage and acronym badges directly on the HUD.
-```bash
-ruas fuzzy pQRIS .
-ruas fuzzy invGen . --threshold 0.35
-```
-
-### 2. Mamdani Fuzzy Inference System (`FuzzyInferenceEngine`)
-Replaces brittle step functions with continuous triangular (`trimf`) and trapezoidal (`trapmf`) membership functions:
-- Evaluates Afferent ($Ca$) and Efferent ($Ce$) coupling, Bayesian edge confidence, and structural instability through Mamdani IF-THEN rules.
-- Computes the continuous **Fuzzy Fragility Index (FFI)** ($0-100\%$) and **Linguistic Membership Profile** (`Clean`, `Fair`, `Fragile`, `Critical`).
-```bash
-ruas ask "proses pembayaran" --fuzzy --roast
-ruas audit . --fuzzy
-```
-
-### 3. Fuzzy-Weighted Dijkstra Traversal (Lowest Friction & Risk Path)
-In addition to standard Bayesian log-likelihood Dijkstra, Ruas computes edge friction multipliers $f(e) \in [1.0, 3.5]$ through Mamdani FIS:
-$$w_{\text{fuzzy}}(e) = w_{\text{bayesian}}(e) \times f(e), \quad w_{\text{fuzzy}}(e) \ge 0$$
-Minimizing this path ensures the route avoids congested hubs, fragile module boundaries, and uncertain edges.
-```bash
-# Find minimal friction path between two symbols
-ruas path checkoutOrder calculateDiscount . --fuzzy
-
-# Discover top 3 alternative paths with fuzzy impedance evaluations
-ruas path checkoutOrder calculateDiscount . -k 3 --fuzzy
-```
-
-### 4. Systematic Fuzzy Smell Detection
-Evaluates dead-code likelihood and God Component violations using multi-input degrees of truth:
-```bash
-ruas smell .
-ruas smell . --json
-```
-
-### 5. Fuzzy Architectural Boundary Linter (`ruas lint` / `ruas check`)
-Enforces Clean Architecture layer boundaries (e.g., Domain must not depend on Application or Infrastructure; Inversion of Control) using Mamdani Fuzzy Inference:
-- Continuous fuzzy violation degrees $\mu_{\text{violation}}(e) \in [0, 1]$ based on edge coupling intensity, Bayesian confidence, and target blast radius.
-- Purity Score ($0-100\%$) and letter grade (`A`, `B`, `C`, `D`, `F`).
-- Automated Clean Architecture configuration generator (`--init`).
-- Strict CI/CD quality gate enforcement (`--strict`).
-
-```bash
-# Generate default Clean Architecture configuration (.ruas/architecture.json)
-ruas lint --init
-
-# Run architectural boundary audit
-ruas lint .
-
-# Run in CI mode with strict gate (fails if purity < 80 or critical violations exist)
-ruas check . --strict --json
-```
+| Goal | Command |
+|---|---|
+| Index (cold or incremental) | `ruas index .` |
+| Health & stats | `ruas status .` · `ruas audit . [--fuzzy] [--json]` |
+| Ask in any mix of languages | `ruas ask "calculate customer discount" --roast [--fuzzy]` |
+| Blast radius | `ruas trace prosesQRIS . --depth 3 [--dijkstra]` |
+| Best path A → B | `ruas path checkoutOrder calculateDiscount . [-k 3] [--fuzzy]` |
+| Acronym / typo search | `ruas fuzzy pQRIS .` |
+| Code smells | `ruas smell . [--json]` |
+| Architecture boundaries | `ruas lint --init` → `ruas lint .` → `ruas check . --strict --json` |
+| Live watcher | `ruas watch .` |
+| Visual explorer (60 FPS) | `ruas ui . --port 4200` |
+| Export | `ruas export . --html\|--mermaid\|--dot\|--json <file>` |
+| Handover docs (cited) | `ruas docgen . --out docs/HANDOVER.md` |
+| AI memory | `ruas vibe save "<intent>" -f <file> -n "<note>"` · `recall` · `sync` |
+| MCP server | `ruas mcp .` |
 
 ---
 
-## 🧠 Vibe Coding Memory & AI Mother Tongue Dialect (`RUAS_CONTEXT.md`)
+## 🏗 Architecture linter
 
-When developers "vibe code" with AI coding partners (Cursor, Claude Desktop, Antigravity, Cline, Aider), the biggest bottlenecks are **context window amnesia** and **token exhaustion**. Standard tools feed AI raw files with tons of boilerplate implementation fluff, wasting thousands of tokens and causing models to hallucinate.
-
-Ruas introduces a native **AI Mother Tongue Dialect**:
-1. **High Shannon Entropy Format:** Strips verbose syntactic boilerplate, preserving only exact AST signatures, line spans, doc annotations, and Bayesian dependency edges.
-2. **Persistent Vibe Memory:** AI and developers can checkpoint session intent, active files, and architectural invariants (`ruas vibe save` or MCP `save_context`).
-3. **Single Ground Truth File (`RUAS_CONTEXT.md`):** Automatically written to the project root and `.ruas/memory/latest.md`. An incoming AI agent or new session reads this file first and instantly understands the whole codebase without rescanning.
-
-```bash
-# Checkpoint current task and rules
-ruas vibe save "Refactor payment flow to dynamic QRIS" -f src/checkout.ts -n "Keep settlement atomic"
-
-# Recall latest working memory
-ruas vibe recall
-
-# Sync and regenerate RUAS_CONTEXT.md
-ruas vibe sync
+```mermaid
+flowchart TB
+    subgraph Allowed["✅ Allowed flow"]
+        direction TB
+        P[Presentation] --> A[Application] --> D[Domain]
+        I[Infrastructure] --> A
+    end
+    D -.->|❌ violation μ=0.92| I
+    style D fill:#16a34a,color:#fff
+    style I fill:#dc2626,color:#fff
 ```
+
+Violations carry a **continuous degree μ ∈ [0,1]**, rolled into a purity score and grade. Use `ruas check . --strict` as a CI gate (fails at purity < 80 or any critical violation).
 
 ---
 
-## 🤖 AI Agent Integration (MCP Protocol)
-
-Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **7 state-of-the-art tools** designed specifically for autonomous AI agents:
-
-### 1. `ask_code`
-Searches code symbols using calibrated multilingual graph retrieval with bounded context payloads.
-- **Inputs:** `query` (string), `limit` (number), `tokenBudget` (default 4000), `roast` (boolean).
-- **Outputs:** Ranked symbols, exact line spans, signatures, doc comments, and technical debt assessment.
-
-### 2. `trace_impact`
-Traces the full blast radius and call chain of any function, method, or class.
-- **Inputs:** `symbol` (string), `direction` ("inbound" | "outbound" | "both"), `depth` (number).
-- **Outputs:** Dependent callers, callees, Bayesian edge probabilities with 95% Credible Intervals, and breaking change risk score (`LOW` | `MEDIUM` | `HIGH` | `CRITICAL`).
-
-### 3. `analyze_architecture`
-Performs whole-codebase architectural health analysis, detects circular dependency cycles, flags unreferenced dead code (orphans), and calculates Robert C. Martin package coupling metrics.
-- **Inputs:** `includeCycles` (boolean), `includeOrphans` (boolean), `includeCoupling` (boolean).
-- **Outputs:** Health score (0-100), letter grade, circular cycle chains, dead code list, and subsystem instability ($I$).
-
-### 4. `find_path`
-Finds the shortest directed call and dependency path between any two symbols with step-by-step Bayesian posterior confidence.
-- **Inputs:** `fromSymbol` (string), `toSymbol` (string).
-- **Outputs:** Origin, destination, hop count, path chain with edge kinds, and cumulative probability.
-
-### 5. `project_overview`
-High-level architectural summary of the codebase.
-- **Outputs:** File counts, language breakdown, AST node counts, and top 10 central hubs (symbols with highest in-degree / dependents).
-
-### 6. `save_context` (Vibe Memory Checkpoint)
-Enables AI coding agents to persist their working memory, active files, architectural invariants, and pending tasks during vibe coding. Automatically writes `RUAS_CONTEXT.md` in the project root.
-- **Inputs:** `intent` (string), `activeFiles` (string[]), `architecturalNotes` (string), `pendingDecisions` (string[]), `sessionTag` (string).
-- **Outputs:** Checkpoint confirmation and synced file locations.
-
-### 7. `recall_context` (LLM Amnesia Prevention)
-Restores previously checkpointed vibe coding memory and working state in the AI-Native mother tongue format, preventing context window truncation and drift.
-- **Inputs:** `includeFullManifest` (boolean), `sessionLimit` (number).
-- **Outputs:** Active intent, open tasks, invariants, and token-dense AST signatures.
-
-### 8. `lint_architecture` (Architectural Boundary Compliance)
-Enables AI coding agents to verify that newly generated code or proposed refactorings do not violate defined layer boundaries or inversion of control principles.
-- **Inputs:** `configJson` (optional string), `configPath` (optional string).
-- **Outputs:** Overall purity score, letter grade, layer outbound flow matrix, and fuzzy severity-ranked violations.
-
-### Connecting to Claude Desktop / Cursor
-
-Add this to your `claude_desktop_config.json`:
+## 🤖 MCP for AI agents
 
 ```json
 {
   "mcpServers": {
     "ruas": {
-      "command": "node",
-      "args": ["/path/to/ruas/packages/cli/dist/index.js", "mcp", "/path/to/your/project"]
+      "command": "npx",
+      "args": ["-y", "@fk0u/ruas", "mcp", "/path/to/your/project"]
     }
   }
 }
 ```
 
----
+| Tool | What the agent gets |
+|---|---|
+| `ask_code` | Ranked symbols, spans, signatures within a **token budget** |
+| `trace_impact` | Callers/callees, edge probabilities + 95% CI, risk `LOW→CRITICAL` |
+| `analyze_architecture` | Health score, cycles, dead code, instability per subsystem |
+| `find_path` | Highest-confidence call path between two symbols |
+| `project_overview` | Language mix, node counts, top-10 hubs |
+| `lint_architecture` | Purity score + fuzzy-ranked boundary violations |
+| `save_context` / `recall_context` | Persistent working memory → `RUAS_CONTEXT.md` |
 
-## 🔬 Benchmark & Statistical Rigor
-
-Ruas includes a reproducible evaluation harness in `@ruas/eval` benchmarked against hand-labeled bilingual queries across TypeScript and PHP:
-
-| Variant / Configuration | Recall@1 | Recall@5 | MRR | nDCG@10 | p95 Latency |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **Baseline: FTS5 BM25 Only** | 0.6111 | 0.7556 | 0.6852 | 0.7024 | 1.29 ms |
-| **Variant B: BM25 + Glossary** | 0.7444 | 0.8889 | 0.8222 | 0.8432 | 1.24 ms |
-| **Variant C: BM25 + Glossary + Stemming** | **0.7667** | **0.8889** | **0.8370** | **0.8543** | 1.83 ms |
-| **Full Pipeline: BM25 + Trigram + Glossary + Stemming + PPR + RRF** | 0.7000 | **0.8889** | 0.8037 | 0.8297 | 8.29 ms |
-
-- **Recall@5 Lift over raw BM25:** **+17.6%**
-- **Paired Wilcoxon Signed-Rank Test:** $p = 0.0383$ ($p < 0.05$ statistically significant).
-- **Incremental Correctness Invariant:** $\text{Graph}(\text{Incremental}) \equiv \text{Graph}(\text{Cold Rebuild})$ verified across continuous edits, additions, and deletions.
-
----
-
-## 📜 Clean Room Compliance & Licensing
-
-- **Clean-room implementation:** All algorithms (Nazief-Adriani stemmer, BM25 ranking, Personalized PageRank, Beta credible interval, Merkle dirty-set) were derived directly from academic publications without inspecting proprietary or GPL source code.
-- **Permissive licenses only:** Ruas and all transitive runtime dependencies are licensed under permissive licenses (MIT / Apache-2.0 / BSD-3-Clause / CC0).
-- See [docs/CLEANROOM.md](docs/CLEANROOM.md) and [THIRD_PARTY.md](THIRD_PARTY.md).
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant Ruas as Ruas MCP
+    Agent->>Ruas: recall_context
+    Ruas-->>Agent: intent, invariants, signatures
+    Agent->>Ruas: trace_impact(processPayment)
+    Ruas-->>Agent: risk HIGH, 7 callers, p=0.91 [0.84–0.96]
+    Agent->>Ruas: lint_architecture
+    Ruas-->>Agent: purity 86 (B), 1 violation
+    Agent->>Ruas: save_context
+```
 
 ---
+
+## 🔬 Benchmarks
+
+Hand-labeled bilingual queries over TypeScript + PHP, reproducible via `@ruas/eval`.
+
+```mermaid
+xychart-beta
+    title "Recall@5 / MRR by pipeline variant"
+    x-axis ["BM25", "+Glossary", "+Stemming", "Full (PPR+RRF)"]
+    y-axis "score" 0.5 --> 1.0
+    bar [0.7556, 0.8889, 0.8889, 0.8889]
+    line [0.6852, 0.8222, 0.8370, 0.8037]
+```
+
+| Variant | R@1 | R@5 | MRR | nDCG@10 | p95 |
+|---|:-:|:-:|:-:|:-:|:-:|
+| BM25 only | 0.611 | 0.756 | 0.685 | 0.702 | 1.29 ms |
+| + Glossary | 0.744 | 0.889 | 0.822 | 0.843 | 1.24 ms |
+| + Stemming | **0.767** | **0.889** | **0.837** | **0.854** | 1.83 ms |
+| Full pipeline | 0.700 | **0.889** | 0.804 | 0.830 | 8.29 ms |
+
+**+17.6% Recall@5 over BM25** · paired Wilcoxon *p* = 0.0383 · incremental graph ≡ cold rebuild (verified).
+
+---
+
+## 🧠 Vibe memory (`RUAS_CONTEXT.md`)
+
+```mermaid
+stateDiagram-v2
+    [*] --> Coding
+    Coding --> Checkpoint: ruas vibe save / save_context
+    Checkpoint --> Context: writes RUAS_CONTEXT.md
+    Context --> NewSession: agent restarts
+    NewSession --> Coding: recall_context (no re-scan)
+```
+
+Token-dense format: AST signatures, line spans, invariants and Bayesian edges only — no boilerplate bodies.
+
+---
+
+## 📚 Docs
+
+[Roadmap](ROADMAP.md) · [Changelog](CHANGELOG.md) · [Security](SECURITY.md) · [Plan](docs/PLAN.md) · [Methodology](docs/METHODOLOGY.md) · [Handover](docs/HANDOVER.md) · [Clean-room](docs/CLEANROOM.md) · [ADRs](docs/adr) · [Third-party](THIRD_PARTY.md)
+
+## 🤝 Contributing
+
+PRs welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). Clean-room rule: derive from papers, never copy GPL/proprietary code.
 
 ## 📄 License
 
-MIT © 2026 Ghani & Ruas Contributors.
+MIT © 2026 Al-Ghani Desta Setyawan & Ruas Contributors.

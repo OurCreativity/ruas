@@ -1,24 +1,26 @@
 ---
 ruas_dialect: ai-native/v1
 target: "Autonomous AI Coding Agents (Cursor, Claude, Antigravity, Cline)"
-generated_at: "2026-10-15T03:33:49.559Z"
-project_root: "/Users/kou/Project/Graph_Draft"
+generated_at: "2026-10-16T03:38:34.503Z"
+project_root: "/Users/kou/Project/ruas"
 total_symbols: 349
 total_edges: 855
-vibe_session_id: "vibe-1792035229556-gjmnz"
-vibe_timestamp: 1792035229556
+vibe_session_id: "vibe-1792121914500-h9wrg"
+vibe_timestamp: 1792121914500
 ---
 
 # 🌿 Ruas AI-Native Memory & Working Context
 > **LLM NOTICE:** This document is pre-indexed semantic ground truth. Do NOT rescan ASTs or hallucinate unverified relationships.
 
 ## 🧠 Active Vibe Intent & Working Memory
-- **Developer Intent:** `Implementasi Vibe Coding Memory & Bahasa Ibu AI`
-- **Session Tag:** `vibe-system`
-- **Active Files (1):**
-  - `packages/docgen/src/ai-native-generator.ts`
+- **Developer Intent:** `Tech-lead review follow-up: items 1-2 done (CI, community docs); remaining backlog in ROADMAP.md (languages, benchmark, repo hygiene, distribution, MCP polish, visuals)`
+- **Session Tag:** `review`
+- **Active Files (3):**
+  - `ROADMAP.md`
+  - `.github/workflows/ci.yml`
+  - `README.md`
 - **Architectural Notes / Invariants:**
-  Format Shannon entropy tinggi, bebas fluff, simpan ke RUAS_CONTEXT.md
+  Read ROADMAP.md before planning. Keep clean-room rule. Backlog: 3 more languages, 4 bigger benchmark (PPR+RRF underperforms Variant C), 5 move test-project/RUAS_CONTEXT/graph artifacts, 6 package naming + node>=22 fallback, 7 MCP e2e test + client configs, 8 de-hype README + GIFs + banner, 9 blocking coverage and self-lint
 
 ## 🏛️ Central Hub Symbols (God Nodes)
 | Symbol | Kind | Inbound Callers | Outbound Calls | Risk Assessment |
