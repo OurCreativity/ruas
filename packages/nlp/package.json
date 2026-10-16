@@ -1,6 +1,6 @@
 {
   "name": "@ruas/nlp",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Multilingual tokenizer, Nazief-Adriani stemmer, language detector, and glossary expander for Ruas",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@ruas/mcp",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "Model Context Protocol (MCP) stdio server for Ruas Universal Code Intelligence",
   "type": "module",
   "main": "./dist/index.js",

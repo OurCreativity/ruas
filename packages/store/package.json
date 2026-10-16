@@ -1,6 +1,6 @@
 {
   "name": "@ruas/store",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "SQLite WAL and FTS5 storage engine for Ruas code intelligence graph",
   "type": "module",
   "main": "./dist/index.js",

@@ -1,6 +1,6 @@
 {
   "name": "@ruas/indexer",
-  "version": "1.0.0",
+  "version": "1.3.0",
   "description": "File walker, ignore matcher, Merkle dirty-set detection, and indexing orchestrator for Ruas",
   "type": "module",
   "main": "./dist/index.js",
