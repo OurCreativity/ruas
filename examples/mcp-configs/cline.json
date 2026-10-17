@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "ruas": {
+      "command": "npx",
+      "args": ["-y", "@fk0u/ruas", "mcp", "/ABSOLUTE/PATH/TO/YOUR/PROJECT"],
+      "disabled": false,
+      "autoApprove": [
+        "ask_code",
+        "trace_impact",
+        "find_path",
+        "project_overview",
+        "analyze_architecture",
+        "lint_architecture",
+        "recall_context"
+      ]
+    }
+  }
+}

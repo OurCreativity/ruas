@@ -3,4 +3,8 @@ export * from "./parser-facade.js";
 export * from "./extractors/ts-extractor.js";
 export * from "./extractors/php-extractor.js";
 export * from "./extractors/python-extractor.js";
+export * from "./extractors/go-extractor.js";
+export * from "./extractors/rust-extractor.js";
+export * from "./extractors/java-extractor.js";
+export * from "./extractors/csharp-extractor.js";
 export * from "./utils/tokenizer.js";

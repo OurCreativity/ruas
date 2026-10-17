@@ -1,6 +1,6 @@
 {
   "name": "@ruas/resolver",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Cross-file reference resolver with calibrated Bayesian Beta-Bernoulli confidence",
   "type": "module",
   "main": "./dist/index.js",

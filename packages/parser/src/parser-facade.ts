@@ -7,6 +7,10 @@ import {
 } from "./extractors/ts-extractor.js";
 import { PhpExtractor } from "./extractors/php-extractor.js";
 import { PythonExtractor } from "./extractors/python-extractor.js";
+import { GoExtractor } from "./extractors/go-extractor.js";
+import { RustExtractor } from "./extractors/rust-extractor.js";
+import { JavaExtractor } from "./extractors/java-extractor.js";
+import { CSharpExtractor } from "./extractors/csharp-extractor.js";
 
 export class CodeParser {
   private parser: Parser | null = null;
@@ -47,6 +51,22 @@ export class CodeParser {
         }
         case "python": {
           const extractor = new PythonExtractor(filePath);
+          return extractor.extract(tree, content);
+        }
+        case "go": {
+          const extractor = new GoExtractor(filePath);
+          return extractor.extract(tree, content);
+        }
+        case "rust": {
+          const extractor = new RustExtractor(filePath);
+          return extractor.extract(tree, content);
+        }
+        case "java": {
+          const extractor = new JavaExtractor(filePath);
+          return extractor.extract(tree, content);
+        }
+        case "csharp": {
+          const extractor = new CSharpExtractor(filePath);
           return extractor.extract(tree, content);
         }
       }

@@ -16,9 +16,9 @@ Multilingual graph retrieval · Bayesian-calibrated blast radius · Fuzzy archit
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20FTS5-003B57?logo=sqlite&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-8%20tools-7C3AED)
-![Tests](https://img.shields.io/badge/tests-100%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-117%20passing-brightgreen)
 ![Offline](https://img.shields.io/badge/cloud%20APIs-zero-orange)
-![Languages](https://img.shields.io/badge/parses-TS%20%C2%B7%20PHP%20%C2%B7%20Python-informational)
+![Languages](https://img.shields.io/badge/languages-TS%20%C2%B7%20JS%20%C2%B7%20PHP%20%C2%B7%20Python%20%C2%B7%20Go%20%C2%B7%20Rust%20%C2%B7%20Java%20%C2%B7%20C%23-informational)
 ![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)
 
 [Quick Start](#-quick-start) · [How it works](#-how-it-works) · [CLI](#-cli-cheat-sheet) · [MCP](#-mcp-for-ai-agents) · [Benchmarks](#-benchmarks) · [Contributing](CONTRIBUTING.md)
@@ -166,6 +166,20 @@ flowchart LR
 
 ---
 
+## 🎨 Interactive Graph Visualizer (`ruas ui`)
+
+Explore software architecture visually with local 60 FPS Cytoscape.js rendering, Leiden community detection, and real-time blast radius inspection:
+
+```bash
+ruas ui . --port 4200
+```
+
+<div align="center">
+  <img src="assets/ui-screenshot.png" alt="Ruas Interactive Code Intelligence Visualizer" width="100%">
+</div>
+
+---
+
 ## 🏗 Architecture linter
 
 ```mermaid
@@ -185,6 +199,8 @@ Violations carry a **continuous degree μ ∈ [0,1]**, rolled into a purity scor
 ---
 
 ## 🤖 MCP for AI agents
+
+Ready-to-use client configurations for **Cursor**, **Claude Code / Desktop**, **Cline**, and **Windsurf** are available in [`examples/mcp-configs/`](examples/mcp-configs/README.md).
 
 ```json
 {
@@ -224,25 +240,26 @@ sequenceDiagram
 
 ## 🔬 Benchmarks
 
-Hand-labeled bilingual queries over TypeScript + PHP, reproducible via `@ruas/eval`.
+Evaluated over **90 hand-labeled multilingual queries** (Indonesian, English, colloquial mixed slang) across 6 languages (TypeScript, PHP, Python, Go, Rust, Java), reproducible via `@ruas/eval`:
 
 ```mermaid
 xychart-beta
-    title "Recall@5 / MRR by pipeline variant"
+    title "Recall@5 / MRR across 90 Multilingual Queries"
     x-axis ["BM25", "+Glossary", "+Stemming", "Full (PPR+RRF)"]
-    y-axis "score" 0.5 --> 1.0
-    bar [0.7556, 0.8889, 0.8889, 0.8889]
-    line [0.6852, 0.8222, 0.8370, 0.8037]
+    y-axis "score" 0.70 --> 1.0
+    bar [0.8722, 0.9389, 0.9389, 0.9556]
+    line [0.8287, 0.8979, 0.8997, 0.9167]
 ```
 
-| Variant | R@1 | R@5 | MRR | nDCG@10 | p95 |
+| Variant | R@1 | R@5 | MRR | nDCG@10 | p95 Latency |
 |---|:-:|:-:|:-:|:-:|:-:|
-| BM25 only | 0.611 | 0.756 | 0.685 | 0.702 | 1.29 ms |
-| + Glossary | 0.744 | 0.889 | 0.822 | 0.843 | 1.24 ms |
-| + Stemming | **0.767** | **0.889** | **0.837** | **0.854** | 1.83 ms |
-| Full pipeline | 0.700 | **0.889** | 0.804 | 0.830 | 8.29 ms |
+| Baseline: FTS5 BM25 Only | 0.761 | 0.872 | 0.829 | 0.840 | 0.60 ms |
+| Variant B: + Domain Glossary | 0.828 | 0.939 | 0.898 | 0.910 | 0.61 ms |
+| Variant C: + Nazief-Adriani Stemming | 0.828 | 0.939 | 0.900 | 0.911 | 0.72 ms |
+| **Full Pipeline (BM25 + Fuzzy + PPR + RRF)** | **0.843** | **0.956** | **0.917** | **0.924** | **10.26 ms** |
 
-**+17.6% Recall@5 over BM25** · paired Wilcoxon *p* = 0.0383 · incremental graph ≡ cold rebuild (verified).
+**+9.6% Recall@5 over BM25 baseline** · paired Wilcoxon signed-rank test *p* = 3.51e-3 (*p* < 0.05 confirmed) · incremental graph ≡ cold rebuild (verified).  
+*Honest trade-off note:* Full graph retrieval introduces a 17.2x p95 latency overhead (10.3ms vs 0.60ms) in exchange for statistically superior cross-language disambiguation.
 
 ---
 

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "ruas": {
+      "command": "npx",
+      "args": ["-y", "@fk0u/ruas", "mcp", "${workspaceFolder}"]
+    }
+  }
+}

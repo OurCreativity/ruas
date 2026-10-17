@@ -1,15 +1,16 @@
 {
   "name": "@fk0u/ruas",
-  "version": "1.3.0",
-  "description": "Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval",
+  "version": "1.4.0",
+  "description": "Universal Code Intelligence Engine with Bayesian Graph Retrieval, Multi-Language ASTs & MCP Integration",
   "type": "module",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "bin": {
-    "ruas": "dist/index.js"
+    "ruas": "bin/ruas.js"
   },
   "author": "Al-Ghani Desta Setyawan <kou.real@outlook.com> (https://github.com/fk0u)",
   "files": [
+    "bin",
     "dist",
     "README.md",
     "LICENSE"

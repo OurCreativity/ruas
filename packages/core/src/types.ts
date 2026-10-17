@@ -2,7 +2,17 @@
  * Core domain types and enumerations for the Ruas knowledge graph.
  */
 
-export type SupportedLanguage = "typescript" | "javascript" | "tsx" | "jsx" | "php" | "python";
+export type SupportedLanguage =
+  | "typescript"
+  | "javascript"
+  | "tsx"
+  | "jsx"
+  | "php"
+  | "python"
+  | "go"
+  | "rust"
+  | "java"
+  | "csharp";
 
 export const NODE_KINDS = [
   "file",

@@ -22,7 +22,7 @@ export function createRuasMcpServer(
 ): McpServer {
   const server = new McpServer({
     name: options?.name ?? "ruas-code-intelligence",
-    version: options?.version ?? "1.0.0",
+    version: options?.version ?? "1.4.0",
   });
 
   const root = options?.projectRoot ?? ".";

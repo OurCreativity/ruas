@@ -1,6 +1,8 @@
+import type { SupportedLanguage } from "@ruas/core";
+
 /**
- * Evaluation dataset containing 45 hand-labeled queries and realistic codebase files
- * across TypeScript and PHP for rigorous ablation testing.
+ * Evaluation dataset containing 90 hand-labeled queries and realistic codebase files
+ * across TypeScript, PHP, Python, Go, Rust, and Java for rigorous ablation testing.
  *
  * Models real-world production repositories (e.g. GoTo, Shopee, BCA) where
  * domain services use standard English identifiers while teams query in
@@ -9,7 +11,7 @@
 
 export interface BenchmarkFile {
   readonly path: string;
-  readonly lang: "typescript" | "php";
+  readonly lang: SupportedLanguage;
   readonly content: string;
 }
 
@@ -18,6 +20,7 @@ export interface BenchmarkQuery {
   readonly query: string;
   readonly lang: "id" | "en" | "mixed";
   readonly domain: string;
+  readonly targetLang?: SupportedLanguage;
   readonly expectedSymbols: readonly string[];
   readonly description: string;
 }
@@ -404,6 +407,152 @@ class BillingController {
 }
 `,
   },
+
+  // 10. Fraud Detection & Behavior Analysis (Python)
+  {
+    path: "src/fraud/detector.py",
+    lang: "python",
+    content: `
+import math
+
+class FraudDetector:
+    """
+    Sistem deteksi penipuan transaksi dan analisis perilaku mencurigakan.
+    """
+    def __init__(self, threshold: float = 0.85):
+        self.threshold = threshold
+
+    def detect_fraud_transaction(self, user_id: str, amount: float, device_ip: str) -> bool:
+        """
+        Deteksi transaksi anomali atau indikasi fraud penipuan kartu kredit.
+        """
+        risk_score = self.calculate_risk_score(amount, device_ip)
+        return risk_score > self.threshold
+
+    def calculate_risk_score(self, amount: float, device_ip: str) -> float:
+        """
+        Kalkulasi skor risiko transaksi keuangan pelanggan.
+        """
+        if amount > 10000000:
+            return 0.95
+        return 0.1
+
+    def flag_suspicious_account(self, account_id: str, reason: str) -> bool:
+        """
+        Blokir dan tandai akun pengguna yang mencurigakan.
+        """
+        return True
+`,
+  },
+
+  // 11. Payment Gateway & Webhook (Go)
+  {
+    path: "src/gateway/payment_gateway.go",
+    lang: "go",
+    content: `
+package gateway
+
+import (
+	"context"
+	"fmt"
+)
+
+// PaymentGateway memproses gateway pembayaran kartu dan e-wallet
+type PaymentGateway struct {
+	MerchantID string
+}
+
+// ProcessGatewayTransaction mengeksekusi proses transaksi pembayaran ke bank mitra
+func (g *PaymentGateway) ProcessGatewayTransaction(ctx context.Context, orderID string, nominal int64) (string, error) {
+	if nominal <= 0 {
+		return "", fmt.Errorf("nominal tidak valid")
+	}
+	return fmt.Sprintf("TRX-%s", orderID), nil
+}
+
+// VerifyWebhookSignature memverifikasi tanda tangan signature webhook acquirer
+func (g *PaymentGateway) VerifyWebhookSignature(payload string, signature string) bool {
+	return len(signature) > 10
+}
+
+// RefundCustomerPayment memproses pengembalian dana atau refund transaksi belanja
+func (g *PaymentGateway) RefundCustomerPayment(transactionID string, amount int64) bool {
+	return amount > 0
+}
+`,
+  },
+
+  // 12. Cryptographic Security & Hashing (Rust)
+  {
+    path: "src/crypto/hasher.rs",
+    lang: "rust",
+    content: `
+use std::collections::HashMap;
+
+/// Modul enkripsi keamanan dan hash token otentikasi
+pub struct SecurityHasher {
+    pub salt: String,
+}
+
+impl SecurityHasher {
+    pub fn new(salt: String) -> Self {
+        Self { salt }
+    }
+
+    /// Enkripsi data sensitif nomor kartu kredit atau rekening
+    pub fn encrypt_sensitive_card(card_number: &str) -> String {
+        format!("ENC-{}", card_number)
+    }
+
+    /// Verifikasi tanda tangan digital HMAC hash transaksi
+    pub fn verify_hmac_signature(message: &str, expected_hash: &str) -> bool {
+        !message.is_empty() && !expected_hash.is_empty()
+    }
+
+    /// Buat token sesi otentikasi aman pengguna
+    pub fn generate_auth_session_token(user_id: &str) -> String {
+        format!("TOK-{}-{}", user_id, 12345)
+    }
+}
+`,
+  },
+
+  // 13. Core Accounting & Ledger Engine (Java)
+  {
+    path: "src/core/AccountingEngine.java",
+    lang: "java",
+    content: `
+package com.ruas.accounting;
+
+import java.util.Date;
+
+/**
+ * Mesin pembukuan akuntansi dan rekonsiliasi buku besar keuangan
+ */
+public class AccountingEngine {
+    /**
+     * Rekonsiliasi transaksi pembukuan kas masuk dan saldo buku besar harian
+     */
+    public boolean reconcileDailyLedger(String accountId, Date date) {
+        return accountId != null && !accountId.isEmpty();
+    }
+
+    /**
+     * Catat jurnal penyesuaian debit dan kredit transaksi keuangan
+     */
+    public String postJournalEntry(String debitAccount, String creditAccount, long amount) {
+        return "JRN-" + System.currentTimeMillis();
+    }
+
+    /**
+     * Hitung total saldo fiskal tahunan perusahaan
+     */
+    public long calculateFiscalBalance(String companyId, int year) {
+        return 500000000L;
+    }
+}
+`,
+  },
 ];
 
 export const BENCHMARK_QUERIES: readonly BenchmarkQuery[] = [
@@ -771,5 +920,417 @@ export const BENCHMARK_QUERIES: readonly BenchmarkQuery[] = [
     domain: "payments",
     expectedSymbols: ["handleQrisCallbackWebhook"],
     description: "Mixed query for QRIS webhook callback",
+  },
+
+  // --- EXPANDED MULTI-LANGUAGE QUERIES (45 ADDITIONAL: TOTAL 90) ---
+  // Indonesian (id_21 - id_35)
+  {
+    id: "id_21",
+    query: "deteksi penipuan transaksi mencurigakan",
+    lang: "id",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["detect_fraud_transaction", "FraudDetector"],
+    description: "Indonesian query for transaction fraud detection in Python",
+  },
+  {
+    id: "id_22",
+    query: "hitung skor risiko transaksi",
+    lang: "id",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["calculate_risk_score"],
+    description: "Indonesian query for risk score calculation in Python",
+  },
+  {
+    id: "id_23",
+    query: "tandai akun pengguna mencurigakan",
+    lang: "id",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["flag_suspicious_account"],
+    description: "Indonesian query for flagging suspicious accounts",
+  },
+  {
+    id: "id_24",
+    query: "proses transaksi gateway pembayaran",
+    lang: "id",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["ProcessGatewayTransaction", "PaymentGateway"],
+    description: "Indonesian query for Go gateway transaction processing",
+  },
+  {
+    id: "id_25",
+    query: "verifikasi signature webhook acquirer",
+    lang: "id",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["VerifyWebhookSignature"],
+    description: "Indonesian query for webhook signature verification in Go",
+  },
+  {
+    id: "id_26",
+    query: "pengembalian dana transaksi refund",
+    lang: "id",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["RefundCustomerPayment"],
+    description: "Indonesian query for refunding payments in Go",
+  },
+  {
+    id: "id_27",
+    query: "enkripsi nomor kartu kredit sensitif",
+    lang: "id",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["encrypt_sensitive_card", "SecurityHasher"],
+    description: "Indonesian query for credit card encryption in Rust",
+  },
+  {
+    id: "id_28",
+    query: "verifikasi tanda tangan digital hmac hash",
+    lang: "id",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["verify_hmac_signature"],
+    description: "Indonesian query for HMAC signature verification in Rust",
+  },
+  {
+    id: "id_29",
+    query: "buat token sesi otentikasi login",
+    lang: "id",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["generate_auth_session_token"],
+    description: "Indonesian query for session token generation in Rust",
+  },
+  {
+    id: "id_30",
+    query: "rekonsiliasi saldo buku besar harian kas",
+    lang: "id",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["reconcileDailyLedger", "AccountingEngine"],
+    description: "Indonesian query for daily ledger reconciliation in Java",
+  },
+  {
+    id: "id_31",
+    query: "catat jurnal penyesuaian debit kredit",
+    lang: "id",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["postJournalEntry"],
+    description: "Indonesian query for posting journal entries in Java",
+  },
+  {
+    id: "id_32",
+    query: "hitung total saldo fiskal tahunan",
+    lang: "id",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["calculateFiscalBalance"],
+    description: "Indonesian query for fiscal balance calculation in Java",
+  },
+  {
+    id: "id_33",
+    query: "cetak faktur tagihan pelanggan",
+    lang: "id",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["generateCustomerInvoice"],
+    description: "Indonesian query for invoice printing",
+  },
+  {
+    id: "id_34",
+    query: "laporan mutasi rekening keuangan",
+    lang: "id",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["getAccountStatementSummary"],
+    description: "Indonesian query for account statement summary",
+  },
+  {
+    id: "id_35",
+    query: "perhitungan denda keterlambatan cicilan",
+    lang: "id",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["calculateLatePaymentPenalty"],
+    description: "Indonesian query for late penalty calculation",
+  },
+
+  // English (en_16 - en_30)
+  {
+    id: "en_16",
+    query: "detect anomalous fraud transaction",
+    lang: "en",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["detect_fraud_transaction"],
+    description: "English query for anomaly and fraud detection",
+  },
+  {
+    id: "en_17",
+    query: "evaluate transaction risk score",
+    lang: "en",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["calculate_risk_score"],
+    description: "English query for transaction risk calculation",
+  },
+  {
+    id: "en_18",
+    query: "block suspicious user account",
+    lang: "en",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["flag_suspicious_account"],
+    description: "English query for flagging suspicious account",
+  },
+  {
+    id: "en_19",
+    query: "execute payment gateway transaction",
+    lang: "en",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["ProcessGatewayTransaction"],
+    description: "English query for gateway transaction execution",
+  },
+  {
+    id: "en_20",
+    query: "validate webhook signature security",
+    lang: "en",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["VerifyWebhookSignature"],
+    description: "English query for webhook signature validation",
+  },
+  {
+    id: "en_21",
+    query: "process customer payment refund",
+    lang: "en",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["RefundCustomerPayment"],
+    description: "English query for customer payment refund",
+  },
+  {
+    id: "en_22",
+    query: "encrypt credit card number",
+    lang: "en",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["encrypt_sensitive_card"],
+    description: "English query for credit card encryption",
+  },
+  {
+    id: "en_23",
+    query: "verify hmac digital signature",
+    lang: "en",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["verify_hmac_signature"],
+    description: "English query for digital HMAC verification",
+  },
+  {
+    id: "en_24",
+    query: "generate secure auth session token",
+    lang: "en",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["generate_auth_session_token"],
+    description: "English query for authentication session token",
+  },
+  {
+    id: "en_25",
+    query: "reconcile daily general ledger",
+    lang: "en",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["reconcileDailyLedger"],
+    description: "English query for ledger reconciliation",
+  },
+  {
+    id: "en_26",
+    query: "post debit credit journal entry",
+    lang: "en",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["postJournalEntry"],
+    description: "English query for posting journal entries",
+  },
+  {
+    id: "en_27",
+    query: "calculate annual fiscal balance",
+    lang: "en",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["calculateFiscalBalance"],
+    description: "English query for fiscal balance",
+  },
+  {
+    id: "en_28",
+    query: "generate customer billing statement",
+    lang: "en",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["getAccountStatementSummary"],
+    description: "English query for statement summary",
+  },
+  {
+    id: "en_29",
+    query: "compute late payment penalty fee",
+    lang: "en",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["calculateLatePaymentPenalty"],
+    description: "English query for late fee calculation",
+  },
+  {
+    id: "en_30",
+    query: "send overdue payment notification email",
+    lang: "en",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["sendPaymentReminderEmail"],
+    description: "English query for overdue payment email",
+  },
+
+  // Mixed / Colloquial (mix_11 - mix_25)
+  {
+    id: "mix_11",
+    query: "cek fraud transaksi kartu kredit anomali",
+    lang: "mixed",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["detect_fraud_transaction"],
+    description: "Mixed query for checking credit card fraud",
+  },
+  {
+    id: "mix_12",
+    query: "hitung risk score transaksi user",
+    lang: "mixed",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["calculate_risk_score"],
+    description: "Mixed query for risk scoring",
+  },
+  {
+    id: "mix_13",
+    query: "flag akun user mencurigakan fraud",
+    lang: "mixed",
+    domain: "fraud",
+    targetLang: "python",
+    expectedSymbols: ["flag_suspicious_account"],
+    description: "Mixed query for flagging accounts",
+  },
+  {
+    id: "mix_14",
+    query: "process payment via gateway mitra",
+    lang: "mixed",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["ProcessGatewayTransaction"],
+    description: "Mixed query for gateway payment processing",
+  },
+  {
+    id: "mix_15",
+    query: "verify signature webhook notif callback",
+    lang: "mixed",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["VerifyWebhookSignature"],
+    description: "Mixed query for webhook verification",
+  },
+  {
+    id: "mix_16",
+    query: "refund payment transaksi belanja customer",
+    lang: "mixed",
+    domain: "gateway",
+    targetLang: "go",
+    expectedSymbols: ["RefundCustomerPayment"],
+    description: "Mixed query for payment refunds",
+  },
+  {
+    id: "mix_17",
+    query: "enkripsi data credit card sensitif",
+    lang: "mixed",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["encrypt_sensitive_card"],
+    description: "Mixed query for credit card encryption",
+  },
+  {
+    id: "mix_18",
+    query: "validasi hmac signature hash digital",
+    lang: "mixed",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["verify_hmac_signature"],
+    description: "Mixed query for HMAC verification",
+  },
+  {
+    id: "mix_19",
+    query: "generate token auth sesi login",
+    lang: "mixed",
+    domain: "crypto",
+    targetLang: "rust",
+    expectedSymbols: ["generate_auth_session_token"],
+    description: "Mixed query for auth token generation",
+  },
+  {
+    id: "mix_20",
+    query: "rekonsiliasi mutasi daily ledger kas",
+    lang: "mixed",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["reconcileDailyLedger"],
+    description: "Mixed query for ledger reconciliation",
+  },
+  {
+    id: "mix_21",
+    query: "post jurnal penyesuaian debit credit",
+    lang: "mixed",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["postJournalEntry"],
+    description: "Mixed query for posting journal entry",
+  },
+  {
+    id: "mix_22",
+    query: "hitung balance fiskal tahunan company",
+    lang: "mixed",
+    domain: "accounting",
+    targetLang: "java",
+    expectedSymbols: ["calculateFiscalBalance"],
+    description: "Mixed query for fiscal balance",
+  },
+  {
+    id: "mix_23",
+    query: "bikin invoice tagihan pembayaran order",
+    lang: "mixed",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["generateCustomerInvoice"],
+    description: "Mixed query for generating customer invoice",
+  },
+  {
+    id: "mix_24",
+    query: "rekap mutasi rekening bank statement",
+    lang: "mixed",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["getAccountStatementSummary"],
+    description: "Mixed query for account statement summary",
+  },
+  {
+    id: "mix_25",
+    query: "kalkulasi denda late payment cicilan",
+    lang: "mixed",
+    domain: "billing",
+    targetLang: "php",
+    expectedSymbols: ["calculateLatePaymentPenalty"],
+    description: "Mixed query for late penalty calculation",
   },
 ];

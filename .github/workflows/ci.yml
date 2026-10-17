@@ -50,12 +50,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test:coverage
-        continue-on-error: true  # ponytail: no coverage provider/threshold yet, make blocking once configured
 
   dogfood:
     name: Architecture gate (self-lint)
     runs-on: ubuntu-latest
-    continue-on-error: true  # ponytail: advisory until purity baseline is known
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4

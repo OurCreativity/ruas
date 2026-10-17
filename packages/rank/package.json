@@ -1,6 +1,6 @@
 {
   "name": "@ruas/rank",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Lexical FTS5, Trigram fuzzy matching, Personalized PageRank, and Reciprocal Rank Fusion engine for Ruas",
   "type": "module",
   "main": "./dist/index.js",

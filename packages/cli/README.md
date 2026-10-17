@@ -1,6 +1,6 @@
 # 🌿 Ruas
 
-> **Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval**  
+> **Universal Code Intelligence Engine with Bayesian Calibration & Multilingual Graph Retrieval**  
 > Offline-first, zero-external-API, statistically calibrated code property graph for AI agents (via MCP) and human developers.
 
 ---
@@ -177,7 +177,7 @@ $$w(e) = -\ln(p(e)) \ge 0$$
 Minimizing cumulative Dijkstra resistance:
 $$\min \sum_{i=1}^n w(e_i) = \min \sum_{i=1}^n -\ln(p(e_i)) \iff \max \prod_{i=1}^n p(e_i)$$
 
-This **proves mathematically** that Dijkstra's shortest path finds the trajectory with the **highest joint Bayesian confidence**, rather than merely the fewest raw hops.
+Because edge weights are defined as negative log-probabilities ($-\ln P$), Dijkstra's algorithm minimizes the sum of weights, which corresponds directly to maximizing the joint probability product $\prod P_i$ along independent transitions: finding the trajectory with the highest joint Bayesian confidence rather than merely the fewest raw hops.
 
 ### 2. Binary Min-Priority Queue
 Ruas implements an allocation-free binary min-heap with $O(\log V)$ insertions and extractions, operating at sub-millisecond latencies across hundreds of thousands of code nodes.
@@ -282,7 +282,7 @@ ruas vibe sync
 
 ## 🤖 AI Agent Integration (MCP Protocol)
 
-Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **7 state-of-the-art tools** designed specifically for autonomous AI agents:
+Ruas provides a native `@modelcontextprotocol/sdk` stdio server exposing **8 specialized tools** designed specifically for autonomous AI agents:
 
 ### 1. `ask_code`
 Searches code symbols using calibrated multilingual graph retrieval with bounded context payloads.

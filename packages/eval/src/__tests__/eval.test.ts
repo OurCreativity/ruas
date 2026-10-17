@@ -61,8 +61,10 @@ describe("@ruas/eval End-to-End Ablation Benchmark", () => {
       await runner.setup();
       const report = await runner.runBenchmark();
 
-      expect(report.totalQueries).toBe(45);
+      expect(report.totalQueries).toBe(90);
       expect(report.variants.length).toBe(4);
+      expect(report.perLanguageResults.length).toBeGreaterThanOrEqual(4);
+      expect(report.perDialectResults.length).toBe(3);
 
       const bm25Agg = report.variants[0]!.aggregate;
       const fullAgg = report.variants[3]!.aggregate;
@@ -76,5 +78,5 @@ describe("@ruas/eval End-to-End Ablation Benchmark", () => {
     } finally {
       await runner.teardown();
     }
-  }, 45_000); // 45s timeout for complete 45-query 4-variant benchmark
+  }, 90_000); // 90s timeout for complete 90-query 4-variant benchmark
 });

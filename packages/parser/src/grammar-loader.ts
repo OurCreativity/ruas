@@ -53,6 +53,18 @@ export class GrammarLoader {
       case "python":
         wasmFileName = "tree-sitter-python.wasm";
         break;
+      case "go":
+        wasmFileName = "tree-sitter-go.wasm";
+        break;
+      case "rust":
+        wasmFileName = "tree-sitter-rust.wasm";
+        break;
+      case "java":
+        wasmFileName = "tree-sitter-java.wasm";
+        break;
+      case "csharp":
+        wasmFileName = "tree-sitter-c_sharp.wasm";
+        break;
       default: {
         const exhaustiveCheck: never = lang;
         throw new Error(`Unsupported language for tree-sitter: ${String(exhaustiveCheck)}`);

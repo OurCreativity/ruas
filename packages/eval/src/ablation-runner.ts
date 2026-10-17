@@ -33,6 +33,18 @@ export interface VariantResult {
   readonly aggregate: AggregateMetrics;
 }
 
+export interface GroupedMetricSummary {
+  readonly group: string;
+  readonly queryCount: number;
+  readonly bm25R1: number;
+  readonly bm25R5: number;
+  readonly bm25Mrr: number;
+  readonly fullR1: number;
+  readonly fullR5: number;
+  readonly fullMrr: number;
+  readonly liftRecall5: number;
+}
+
 export interface AblationReport {
   readonly timestamp: string;
   readonly totalQueries: number;
@@ -40,6 +52,13 @@ export interface AblationReport {
   readonly pValueFullVsBm25: number;
   readonly isStatisticallySignificant: boolean;
   readonly emotionalDamageSummary: string;
+  readonly perLanguageResults: readonly GroupedMetricSummary[];
+  readonly perDialectResults: readonly GroupedMetricSummary[];
+  readonly latencyTradeoff: {
+    readonly bm25P95Ms: number;
+    readonly fullPipelineP95Ms: number;
+    readonly latencyMultiplier: number;
+  };
 }
 
 export class AblationRunner {
@@ -125,10 +144,40 @@ export class AblationRunner {
     const bm25Agg = variantResults[0]!.aggregate;
     const liftRecall5 = ((fullAgg.meanRecallAt5 - bm25Agg.meanRecallAt5) / (bm25Agg.meanRecallAt5 || 1)) * 100;
 
+    const bm25QueryResults = variantResults[0]!.queryResults;
+    const fullQueryResults = variantResults[3]!.queryResults;
+
+    const inferLanguage = (q: BenchmarkQuery): string => {
+      if (q.targetLang) return q.targetLang;
+      if (["payments", "promotions", "logistics", "customer", "ecommerce"].includes(q.domain)) return "typescript";
+      if (["tax", "billing"].includes(q.domain)) return "php";
+      if (q.domain === "fraud") return "python";
+      if (q.domain === "gateway") return "go";
+      if (q.domain === "crypto") return "rust";
+      if (q.domain === "accounting") return "java";
+      return "typescript";
+    };
+
+    const perLanguageResults = this.computeGroupedMetrics(
+      BENCHMARK_QUERIES,
+      bm25QueryResults,
+      fullQueryResults,
+      (q) => inferLanguage(q),
+    );
+
+    const perDialectResults = this.computeGroupedMetrics(
+      BENCHMARK_QUERIES,
+      bm25QueryResults,
+      fullQueryResults,
+      (q) => q.lang.toUpperCase(),
+    );
+
+    const latencyMultiplier = fullAgg.p95LatencyMs / (bm25Agg.p95LatencyMs || 0.1);
+
     const emotionalDamageSummary = [
       `Ablation Analysis: Full Graph Pipeline destroyed baseline BM25 with a +${liftRecall5.toFixed(1)}% lift on Recall@5.`,
       `Baseline BM25 had an MRR of ${(bm25Agg.mrr).toFixed(3)} (basically blind to mixed/regional terminology),`,
-      `while Calibrated Graph Retrieval achieved MRR ${(fullAgg.mrr).toFixed(3)} at ${(fullAgg.p95LatencyMs).toFixed(1)}ms p95 latency.`,
+      `while Calibrated Graph Retrieval achieved MRR ${(fullAgg.mrr).toFixed(3)} at ${(fullAgg.p95LatencyMs).toFixed(1)}ms p95 latency (${latencyMultiplier.toFixed(1)}x latency overhead for +${liftRecall5.toFixed(1)}% recall).`,
       `Wilcoxon signed-rank test confirmed statistical significance with p = ${wilcoxon.pValue.toExponential(4)} (p < 0.05: ${wilcoxon.isSignificant ? "CONFIRMED" : "FAILED"}).`,
     ].join(" ");
 
@@ -139,7 +188,54 @@ export class AblationRunner {
       pValueFullVsBm25: wilcoxon.pValue,
       isStatisticallySignificant: wilcoxon.isSignificant,
       emotionalDamageSummary,
+      perLanguageResults,
+      perDialectResults,
+      latencyTradeoff: {
+        bm25P95Ms: bm25Agg.p95LatencyMs,
+        fullPipelineP95Ms: fullAgg.p95LatencyMs,
+        latencyMultiplier,
+      },
     };
+  }
+
+  private computeGroupedMetrics(
+    queries: readonly BenchmarkQuery[],
+    bm25Results: readonly QueryEvaluationResult[],
+    fullResults: readonly QueryEvaluationResult[],
+    groupFn: (q: BenchmarkQuery) => string,
+  ): readonly GroupedMetricSummary[] {
+    const groups = new Map<string, { bm25: QueryEvaluationResult[]; full: QueryEvaluationResult[] }>();
+
+    for (let i = 0; i < queries.length; i++) {
+      const q = queries[i]!;
+      const key = groupFn(q);
+      if (!groups.has(key)) {
+        groups.set(key, { bm25: [], full: [] });
+      }
+      const g = groups.get(key)!;
+      if (bm25Results[i]) g.bm25.push(bm25Results[i]!);
+      if (fullResults[i]) g.full.push(fullResults[i]!);
+    }
+
+    const summaries: GroupedMetricSummary[] = [];
+    for (const [key, { bm25, full }] of groups.entries()) {
+      const bAgg = aggregateMetrics(bm25);
+      const fAgg = aggregateMetrics(full);
+      const lift = ((fAgg.meanRecallAt5 - bAgg.meanRecallAt5) / (bAgg.meanRecallAt5 || 1)) * 100;
+      summaries.push({
+        group: key,
+        queryCount: bm25.length,
+        bm25R1: bAgg.meanRecallAt1,
+        bm25R5: bAgg.meanRecallAt5,
+        bm25Mrr: bAgg.mrr,
+        fullR1: fAgg.meanRecallAt1,
+        fullR5: fAgg.meanRecallAt5,
+        fullMrr: fAgg.mrr,
+        liftRecall5: lift,
+      });
+    }
+
+    return summaries.sort((a, b) => b.queryCount - a.queryCount);
   }
 
   private async evaluateVariant(

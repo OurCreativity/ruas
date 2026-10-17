@@ -335,12 +335,27 @@ export class ArchitectureLinter {
   }
 
   /**
-   * Automatically inspects nodes and file paths to suggest a default Clean Architecture config.
+   * Retrieves a built-in community architecture preset by name.
+   */
+  public static getPreset(name: string): ArchitectureConfig | undefined {
+    const key = name.toLowerCase().replace(/_/g, "-") as ArchitecturePresetName;
+    return ARCHITECTURE_PRESETS[key];
+  }
+
+  /**
+   * Automatically inspects nodes and file paths to suggest a default Clean Architecture config,
+   * or returns a specific named preset if provided.
    */
   public static generateDefaultConfig(
     nodes: readonly NodeRecord[],
     filePaths?: readonly string[],
+    presetName?: string,
   ): ArchitectureConfig {
+    if (presetName) {
+      const preset = ArchitectureLinter.getPreset(presetName);
+      if (preset) return preset;
+    }
+
     const paths = new Set<string>();
     if (filePaths) {
       for (const p of filePaths) paths.add(p);
@@ -358,45 +373,7 @@ export class ArchitectureLinter {
     const hasPresentation = allPaths.some((p) => /cli|ui|view|controller|api|route|mcp/i.test(p));
 
     if (hasCore || hasApp || hasInfra || hasPresentation) {
-      return {
-        layers: {
-          domain: ["**/domain/**", "**/core/**", "**/models/**", "**/entities/**"],
-          application: ["**/services/**", "**/use-cases/**", "**/handlers/**", "**/app/**"],
-          infrastructure: [
-            "**/infra/**",
-            "**/infrastructure/**",
-            "**/db/**",
-            "**/store/**",
-            "**/storage/**",
-            "**/repositories/**",
-          ],
-          presentation: [
-            "**/cli/**",
-            "**/ui/**",
-            "**/api/**",
-            "**/routes/**",
-            "**/controllers/**",
-            "**/mcp/**",
-          ],
-        },
-        rules: [
-          {
-            from: "domain",
-            disallow: ["application", "infrastructure", "presentation"],
-            message: "Domain entities must remain pure and free from outer layer dependencies.",
-          },
-          {
-            from: "application",
-            disallow: ["presentation"],
-            message: "Application business services must not depend on presentation or UI layers.",
-          },
-          {
-            from: "infrastructure",
-            disallow: ["presentation"],
-            message: "Infrastructure adapters must not depend on presentation layer.",
-          },
-        ],
-      };
+      return ARCHITECTURE_PRESETS["clean-architecture"];
     }
 
     // Default 3-tier fallback template
@@ -421,3 +398,166 @@ export class ArchitectureLinter {
     };
   }
 }
+
+export type ArchitecturePresetName =
+  | "clean-architecture"
+  | "hexagonal"
+  | "onion"
+  | "feature-sliced-design"
+  | "modular-monolith";
+
+export const ARCHITECTURE_PRESETS: Record<ArchitecturePresetName, ArchitectureConfig> = {
+  "clean-architecture": {
+    layers: {
+      domain: ["**/domain/**", "**/core/**", "**/models/**", "**/entities/**"],
+      application: ["**/services/**", "**/use-cases/**", "**/handlers/**", "**/app/**"],
+      infrastructure: [
+        "**/infra/**",
+        "**/infrastructure/**",
+        "**/db/**",
+        "**/store/**",
+        "**/storage/**",
+        "**/repositories/**",
+      ],
+      presentation: [
+        "**/cli/**",
+        "**/ui/**",
+        "**/api/**",
+        "**/routes/**",
+        "**/controllers/**",
+        "**/mcp/**",
+      ],
+    },
+    rules: [
+      {
+        from: "domain",
+        disallow: ["application", "infrastructure", "presentation"],
+        message: "Domain entities must remain pure and free from outer layer dependencies.",
+      },
+      {
+        from: "application",
+        disallow: ["presentation"],
+        message: "Application business services must not depend on presentation or UI layers.",
+      },
+      {
+        from: "infrastructure",
+        disallow: ["presentation"],
+        message: "Infrastructure adapters must not depend on presentation layer.",
+      },
+    ],
+  },
+  hexagonal: {
+    layers: {
+      domain: ["**/domain/**", "**/entities/**", "**/model/**"],
+      ports: ["**/ports/**", "**/interfaces/**", "**/contracts/**"],
+      application: ["**/application/**", "**/usecases/**", "**/services/**"],
+      adapters: [
+        "**/adapters/**",
+        "**/infra/**",
+        "**/infrastructure/**",
+        "**/primary/**",
+        "**/secondary/**",
+      ],
+    },
+    rules: [
+      {
+        from: "domain",
+        disallow: ["ports", "application", "adapters"],
+        message: "Hexagonal core domain must not depend on ports, application services, or external adapters.",
+      },
+      {
+        from: "ports",
+        disallow: ["adapters"],
+        message: "Hexagonal ports must define contracts without depending on concrete infrastructure adapters.",
+      },
+      {
+        from: "application",
+        disallow: ["adapters"],
+        message: "Hexagonal application use cases must invert dependencies and not import outer adapters directly.",
+      },
+    ],
+  },
+  onion: {
+    layers: {
+      domain_model: ["**/domain/models/**", "**/domain/entities/**", "**/domain/model/**"],
+      domain_services: ["**/domain/services/**", "**/domain/rules/**"],
+      application_services: ["**/application/**", "**/usecases/**", "**/use-cases/**"],
+      infrastructure: ["**/infrastructure/**", "**/adapters/**", "**/persistence/**"],
+      ui: ["**/ui/**", "**/controllers/**", "**/views/**", "**/api/**"],
+    },
+    rules: [
+      {
+        from: "domain_model",
+        disallow: ["domain_services", "application_services", "infrastructure", "ui"],
+        message: "Onion Domain Model (innermost core) cannot depend on any outer rings.",
+      },
+      {
+        from: "domain_services",
+        disallow: ["application_services", "infrastructure", "ui"],
+        message: "Onion Domain Services cannot depend on application services or infrastructure.",
+      },
+      {
+        from: "application_services",
+        disallow: ["infrastructure", "ui"],
+        message: "Onion Application Services cannot depend on external infrastructure or UI rings.",
+      },
+    ],
+  },
+  "feature-sliced-design": {
+    layers: {
+      shared: ["**/shared/**", "src/shared/**"],
+      entities: ["**/entities/**", "src/entities/**"],
+      features: ["**/features/**", "src/features/**"],
+      widgets: ["**/widgets/**", "src/widgets/**"],
+      pages: ["**/pages/**", "src/pages/**"],
+      app: ["**/app/**", "src/app/**"],
+    },
+    rules: [
+      {
+        from: "shared",
+        disallow: ["entities", "features", "widgets", "pages", "app"],
+        message: "FSD: 'shared' slice is foundational and cannot import higher slices.",
+      },
+      {
+        from: "entities",
+        disallow: ["features", "widgets", "pages", "app"],
+        message: "FSD: 'entities' slice can only import from 'shared', not higher slices.",
+      },
+      {
+        from: "features",
+        disallow: ["widgets", "pages", "app"],
+        message: "FSD: 'features' slice cannot import widgets, pages, or app.",
+      },
+      {
+        from: "widgets",
+        disallow: ["pages", "app"],
+        message: "FSD: 'widgets' slice cannot import pages or app.",
+      },
+      {
+        from: "pages",
+        disallow: ["app"],
+        message: "FSD: 'pages' slice cannot import root app slice.",
+      },
+    ],
+  },
+  "modular-monolith": {
+    layers: {
+      shared_kernel: ["**/shared/**", "**/common/**", "**/kernel/**"],
+      modules: ["**/modules/**", "**/packages/**"],
+      entrypoints: ["**/api/**", "**/cli/**", "**/server/**", "**/main.*"],
+    },
+    rules: [
+      {
+        from: "shared_kernel",
+        disallow: ["modules", "entrypoints"],
+        message: "Shared kernel must have zero outbound dependencies to specific domain modules or entrypoints.",
+      },
+      {
+        from: "modules",
+        disallow: ["entrypoints"],
+        message: "Domain modules must not import top-level server or CLI entrypoints.",
+      },
+    ],
+  },
+};
+

@@ -2,7 +2,7 @@
 ruas_dialect: ai-native/v1
 target: "Autonomous AI Coding Agents (Cursor, Claude, Antigravity, Cline)"
 generated_at: "2026-10-15T05:29:42.721Z"
-project_root: "/Users/kou/Project/Graph_Draft/test-project"
+project_root: "examples/test-project"
 total_symbols: 26
 total_edges: 35
 vibe_session_id: "vibe-1792042142645-qay5j"

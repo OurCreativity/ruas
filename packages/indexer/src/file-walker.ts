@@ -66,6 +66,17 @@ export class FileWalker {
       }
     }
 
+    // Load .ruasignore if present in rootDir
+    const ruasignorePath = join(this.rootDir, ".ruasignore");
+    if (existsSync(ruasignorePath)) {
+      try {
+        const content = readFileSync(ruasignorePath, "utf-8");
+        this.ig.add(content);
+      } catch {
+        // Fall back gracefully if unreadable
+      }
+    }
+
     // Custom user ignores
     if (options.customIgnores && options.customIgnores.length > 0) {
       this.ig.add(options.customIgnores as string[]);
@@ -82,6 +93,10 @@ export class FileWalker {
       "**/*.cjs",
       "**/*.php",
       "**/*.py",
+      "**/*.go",
+      "**/*.rs",
+      "**/*.java",
+      "**/*.cs",
     ];
 
     const defaultGlobIgnores = [
@@ -159,6 +174,14 @@ export class FileWalker {
         return "php";
       case "py":
         return "python";
+      case "go":
+        return "go";
+      case "rs":
+        return "rust";
+      case "java":
+        return "java";
+      case "cs":
+        return "csharp";
       default:
         return null;
     }

@@ -1,40 +1,40 @@
 ---
 ruas_dialect: ai-native/v1
 target: "Autonomous AI Coding Agents (Cursor, Claude, Antigravity, Cline)"
-generated_at: "2026-10-16T03:38:34.503Z"
+generated_at: "2026-10-17T07:36:48.390Z"
 project_root: "/Users/kou/Project/ruas"
-total_symbols: 349
-total_edges: 855
-vibe_session_id: "vibe-1792121914500-h9wrg"
-vibe_timestamp: 1792121914500
+total_symbols: 549
+total_edges: 1390
+vibe_session_id: "vibe-1792222608384-fh0c8"
+vibe_timestamp: 1792222608384
 ---
 
 # 🌿 Ruas AI-Native Memory & Working Context
 > **LLM NOTICE:** This document is pre-indexed semantic ground truth. Do NOT rescan ASTs or hallucinate unverified relationships.
 
 ## 🧠 Active Vibe Intent & Working Memory
-- **Developer Intent:** `Tech-lead review follow-up: items 1-2 done (CI, community docs); remaining backlog in ROADMAP.md (languages, benchmark, repo hygiene, distribution, MCP polish, visuals)`
-- **Session Tag:** `review`
+- **Developer Intent:** `Release v1.4.0: 4 new languages (Go, Rust, Java, C#), 90-query benchmark ablation, 5 extended architecture presets, Node >= 22 preflight safety, real stdio MCP test suite with client configs, blocking V8 coverage gates, official banner & visual assets`
+- **Session Tag:** `v1.4.0`
 - **Active Files (3):**
+  - `CHANGELOG.md`
   - `ROADMAP.md`
-  - `.github/workflows/ci.yml`
   - `README.md`
 - **Architectural Notes / Invariants:**
-  Read ROADMAP.md before planning. Keep clean-room rule. Backlog: 3 more languages, 4 bigger benchmark (PPR+RRF underperforms Variant C), 5 move test-project/RUAS_CONTEXT/graph artifacts, 6 package naming + node>=22 fallback, 7 MCP e2e test + client configs, 8 de-hype README + GIFs + banner, 9 blocking coverage and self-lint
+  Official v1.4.0 release: 121 tests passing, 86.9% line coverage, 100/100 architecture purity baseline
 
 ## 🏛️ Central Hub Symbols (God Nodes)
 | Symbol | Kind | Inbound Callers | Outbound Calls | Risk Assessment |
 | :--- | :--- | :---: | :---: | :--- |
-| `map` | `function` | 33 | 1 | 🔴 HIGH BLAST RADIUS |
-| `createNodeId` | `function` | 22 | 1 | 🔴 HIGH BLAST RADIUS |
-| `getDatabase` | `method` | 22 | 0 | 🔴 HIGH BLAST RADIUS |
-| `splitIdentifierTokens` | `function` | 19 | 1 | 🔴 HIGH BLAST RADIUS |
-| `NodeRecord` | `interface` | 16 | 0 | 🔴 HIGH BLAST RADIUS |
-| `buildGraphPayload` | `function` | 8 | 7 | 🔴 HIGH BLAST RADIUS |
-| `normalizePath` | `function` | 12 | 0 | 🔴 HIGH BLAST RADIUS |
-| `visitNode` | `method` | 3 | 9 | 🟡 MODERATE |
-| `EdgeRecord` | `interface` | 12 | 0 | 🔴 HIGH BLAST RADIUS |
-| `createFileId` | `function` | 10 | 1 | 🔴 HIGH BLAST RADIUS |
+| `push` | `method` | 87 | 1 | 🔴 HIGH BLAST RADIUS |
+| `createNodeId` | `function` | 46 | 1 | 🔴 HIGH BLAST RADIUS |
+| `map` | `function` | 43 | 1 | 🔴 HIGH BLAST RADIUS |
+| `splitIdentifierTokens` | `function` | 42 | 1 | 🔴 HIGH BLAST RADIUS |
+| `getDatabase` | `method` | 25 | 0 | 🔴 HIGH BLAST RADIUS |
+| `visitNode` | `method` | 4 | 18 | 🟡 MODERATE |
+| `normalizePath` | `function` | 20 | 0 | 🔴 HIGH BLAST RADIUS |
+| `createFileId` | `function` | 18 | 1 | 🔴 HIGH BLAST RADIUS |
+| `createEdgeId` | `function` | 18 | 0 | 🔴 HIGH BLAST RADIUS |
+| `visitNode` | `method` | 4 | 14 | 🟡 MODERATE |
 
 ## ⚡ Bayesian Critical Call Trajectories
 - `[createFileId] --(CALLS:89%)--> [normalizePath]`
@@ -43,20 +43,20 @@ vibe_timestamp: 1792121914500
 - `[mapErr] --(CALLS:89%)--> [err]`
 - `[fromPromise] --(CALLS:89%)--> [ok]`
 - `[fromPromise] --(CALLS:89%)--> [err]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [IndonesianStemmer]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [GlossaryExpander]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [Indexer]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [SymbolResolver]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [RetrievalPipeline]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [AggregateMetrics]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [QueryEvaluationResult]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [aggregateMetrics]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [calculateNdcgAtK]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [calculateRecallAtK]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [calculateReciprocalRank]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [pairedWilcoxonSignedRankTest]`
-- `[ablation-runner.ts] --(IMPORTS:95%)--> [BenchmarkQuery]`
-- `[runBenchmark] --(CALLS:89%)--> [evaluateVariant]`
+- `[pairedWilcoxonSignedRankTest] --(CALLS:89%)--> [normalCdf]`
+- `[indexer.ts] --(IMPORTS:95%)--> [createFileId]`
+- `[indexer.ts] --(IMPORTS:95%)--> [MerkleTree]`
+- `[hashFile] --(CALLS:89%)--> [hashContent]`
+- `[computeDirectoryMerkle] --(CALLS:89%)--> [hashContent]`
+- `[detectDirtySet] --(CALLS:89%)--> [hashFile]`
+- `[glossary.ts] --(IMPORTS:95%)--> [IndonesianStemmer]`
+- `[language-detector.ts] --(IMPORTS:95%)--> [IndonesianStemmer]`
+- `[symbol-resolver.ts] --(IMPORTS:95%)--> [createEdgeId]`
+- `[symbol-resolver.ts] --(IMPORTS:95%)--> [EvidenceRules]`
+- `[similarity] --(CALLS:89%)--> [generateTrigrams]`
+- `[matchCandidates] --(CALLS:89%)--> [similarity]`
+- `[nlp.test.ts] --(IMPORTS:95%)--> [GlossaryExpander]`
+- `[nlp.test.ts] --(IMPORTS:95%)--> [IndonesianStemmer]`
 
 ## 📐 Compact AST Signatures (Zero-Fluff Token Layout)
 ### `packages/core/src/ids.ts`
@@ -97,25 +97,6 @@ vibe_timestamp: 1792121914500
   errorHandler: (error: unknown) => E,
 ): Promise<Result<T, E>> (L71-L81)
 
-### `packages/eval/src/ablation-runner.ts`
-- [interface] `VariantResult` :: interface VariantResult (L29-L34)
-- [interface] `AblationReport` :: interface AblationReport (L36-L43)
-- [class] `AblationRunner` :: class AblationRunner (L45-L248)
-- [method] `constructor` :: (tempDir?: string) (L53-L55)
-- [method] `setup` :: (): Promise<void> (L57-L89)
-- [method] `teardown` :: (): Promise<void> (L91-L96)
-- [method] `runBenchmark` :: (): Promise<AblationReport> (L98-L143)
-- [method] `evaluateVariant` :: (
-    variant: AblationVariant,
-    queries: readonly BenchmarkQuery[],
-  ): Promise<readonly QueryEvaluationResult[]> (L145-L178)
-- [method] `retrieve` :: (variant: AblationVariant, queryText: string): Promise<readonly string[]> (L180-L234)
-- [method] `getVariantName` :: (variant: AblationVariant): string (L236-L247)
-
-### `packages/eval/src/dataset.ts`
-- [interface] `BenchmarkFile` :: interface BenchmarkFile (L10-L14)
-- [interface] `BenchmarkQuery` :: interface BenchmarkQuery (L16-L23)
-
 ### `packages/eval/src/metrics.ts`
 - [interface] `QueryEvaluationResult` :: interface QueryEvaluationResult (L7-L19)
 - [interface] `AggregateMetrics` :: interface AggregateMetrics (L21-L31)
@@ -141,11 +122,6 @@ vibe_timestamp: 1792121914500
   scoresB: readonly number[],
 ): { readonly statistic: number; readonly pValue: number; readonly isSignificant: boolean } (L164-L237)
 - [function] `normalCdf` :: (x: number): number (L242-L257)
-
-### `packages/eval/src/run-eval.ts`
-- [function] `main` :: (): Promise<void> (L3-L50)
-- [function] `pad` :: (str: string, len: number) (L22-L22)
-- [function] `num` :: (n: number, len: number, decimals = 4) (L23-L23)
 
 ### `packages/indexer/src/indexer.ts`
 - [interface] `IndexOptions` :: interface IndexOptions (L8-L12)
@@ -214,23 +190,6 @@ vibe_timestamp: 1792121914500
     weights?: ReadonlyMap<string, number>,
   ): readonly FusionResult<T>[] (L25-L67)
 
-### `packages/rank/src/retrieval-pipeline.ts`
-- [interface] `RetrievedSymbol` :: interface RetrievedSymbol (L12-L20)
-- [interface] `RetrievalResult` :: interface RetrievalResult (L22-L28)
-- [class] `RetrievalPipeline` :: class RetrievalPipeline (L30-L222)
-- [method] `constructor` :: (storage: Storage, glossaryExpander?: GlossaryExpander) (L36-L41)
-- [method] `search` :: (
-    queryText: string,
-    limit = 10,
-    enableRoast = false,
-  ): Promise<RetrievalResult> (L43-L203)
-- [method] `generateEmotionalDamageRoast` :: (
-    node: NodeRecord,
-    inboundCount: number,
-    outboundCount: number,
-    risk: RetrievedSymbol["riskLevel"],
-  ): string (L205-L221)
-
 ### `packages/rank/src/trigram-matcher.ts`
 - [interface] `FuzzyMatchResult` :: interface FuzzyMatchResult (L3-L6)
 - [class] `TrigramMatcher` :: class TrigramMatcher (L8-L70)
@@ -241,15 +200,6 @@ vibe_timestamp: 1792121914500
     nodes: readonly NodeRecord[],
     threshold = 0.45,
   ): readonly FuzzyMatchResult[] (L46-L69)
-
-### `packages/store/src/migrations.ts`
-- [function] `applyMigrations` :: (db: {
-  exec(sql: string): void;
-  prepare(sql: string): {
-    get(...args: unknown[]): unknown;
-    run(...args: unknown[]): unknown;
-  };
-}): void (L103-L123)
 
 ### `packages/nlp/src/stemmer/indonesian-stemmer.ts`
 - [class] `IndonesianStemmer` :: class IndonesianStemmer (L7-L232)
@@ -360,40 +310,6 @@ vibe_timestamp: 1792121914500
     maxTokens = 4000,
   ): BudgetedPacket (L41-L82)
 
-### `packages/mcp/src/server.ts`
-- [interface] `RuasMcpServerOptions` :: interface RuasMcpServerOptions (L10-L13)
-- [function] `createRuasMcpServer` :: (
-  storage: Storage,
-  options?: RuasMcpServerOptions,
-): McpServer (L15-L31)
-- [function] `runStdioServer` :: (
-  storage: Storage,
-  options?: RuasMcpServerOptions,
-): Promise<void> (L33-L55)
-- [function] `shutdown` :: () (L43-L51)
-
-### `packages/rank/src/architecture.ts`
-- [class] `ArchitectureAnalyzer` :: class ArchitectureAnalyzer (L11-L433)
-- [method] `detectCycles` :: (
-    nodes: readonly NodeRecord[],
-    edges: readonly EdgeRecord[],
-  ): readonly CycleInfo[] (L16-L98)
-- [function] `strongConnect` :: (v: string) (L42-L73)
-- [method] `detectOrphans` :: (
-    nodes: readonly NodeRecord[],
-    edges: readonly EdgeRecord[],
-  ): readonly OrphanInfo[] (L104-L152)
-- [method] `calculateHealth` :: (
-    nodes: readonly NodeRecord[],
-    edges: readonly EdgeRecord[],
-  ): ArchitectureHealthReport (L158-L283)
-- [method] `findPath` :: (
-    sourceId: string,
-    targetId: string,
-    nodes: readonly NodeRecord[],
-    edges: readonly EdgeRecord[],
-  ): PathResult (L289-L432)
-
 ### `packages/rank/src/community-detection.ts`
 - [interface] `CommunityPartition` :: interface CommunityPartition (L3-L7)
 - [interface] `LeidenResult` :: interface LeidenResult (L9-L13)
@@ -459,10 +375,6 @@ vibe_timestamp: 1792121914500
 ): Promise<void> (L137-L146)
 - [function] `startGraphServer` :: (options: ServerOptions): Promise<RunningServer> (L148-L189)
 
-### `packages/ui/src/template.ts`
-- [interface] `GraphPayload` :: interface GraphPayload (L1-L36)
-- [function] `renderGraphHtml` :: (payload: GraphPayload): string (L38-L1032)
-
 ### `fixtures/asean-store/src/customer/member.ts`
 - [function] `calculateMemberDiscount` :: (customerId: string, subtotal: number): number (L5-L13)
 - [function] `getLoyaltyPoints` :: (subtotal: number): number (L15-L17)
@@ -480,28 +392,6 @@ vibe_timestamp: 1792121914500
 ### `fixtures/asean-store/src/shipping/kurir.ts`
 - [function] `generateNomorResi` :: (ekspedisi: "JNE" | "SICEPAT", customerId: string): string (L5-L9)
 - [function] `hitungOngkir` :: (beratGram: number, kotaTujuan: string): number (L11-L15)
-
-### `packages/mcp/src/tools/analyze-architecture.ts`
-- [function] `registerAnalyzeArchitectureTool` :: (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  server: any,
-  storage: Storage,
-): void (L21-L94)
-
-### `packages/mcp/src/tools/ask-code.ts`
-- [function] `registerAskCodeTool` :: (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  server: any,
-  storage: Storage,
-  pipeline?: RetrievalPipeline,
-): void (L33-L119)
-
-### `packages/mcp/src/tools/find-path.ts`
-- [function] `registerFindPathTool` :: (
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  server: any,
-  storage: Storage,
-): void (L17-L108)
 
 ### `packages/mcp/src/tools/project-overview.ts`
 - [function] `registerProjectOverviewTool` :: (
@@ -543,81 +433,559 @@ vibe_timestamp: 1792121914500
 - [method] `extractDocstring` :: (bodyNode: Parser.SyntaxNode | null): string | null (L326-L353)
 - [method] `createContainsEdge` :: (parentId: string, childId: string): void (L355-L366)
 
-### `packages/core/src/types.ts`
-- [interface] `FileRecord` :: interface FileRecord (L35-L43)
-- [interface] `NodeRecord` :: interface NodeRecord (L45-L56)
-- [interface] `EdgeRecord` :: interface EdgeRecord (L58-L66)
-- [interface] `UnresolvedRefRecord` :: interface UnresolvedRefRecord (L68-L75)
-- [interface] `GlossaryTerm` :: interface GlossaryTerm (L77-L82)
-- [interface] `CredibleInterval` :: interface CredibleInterval (L84-L88)
-- [function] `computeBetaCredibleInterval` :: (alpha: number, beta: number): CredibleInterval (L94-L112)
-- [interface] `ProjectConfig` :: interface ProjectConfig (L114-L121)
-- [interface] `CycleInfo` :: interface CycleInfo (L123-L129)
-- [interface] `OrphanInfo` :: interface OrphanInfo (L131-L134)
-- [interface] `SubsystemCoupling` :: interface SubsystemCoupling (L136-L142)
-- [interface] `ArchitectureHealthReport` :: interface ArchitectureHealthReport (L144-L157)
-- [interface] `PathResult` :: interface PathResult (L159-L170)
+### `packages/docgen/src/ai-native-generator.ts`
+- [interface] `GenerateAiNativeOptions` :: interface GenerateAiNativeOptions (L3-L9)
+- [class] `AiNativeGenerator` :: class AiNativeGenerator (L16-L177)
+- [method] `generate` :: (options: GenerateAiNativeOptions): AiNativeContextManifest (L17-L176)
 
-### `packages/cli/src/index.ts`
-- [function] `stop` :: () (L301-L306)
-- [function] `shutdown` :: () (L409-L414)
+### `packages/rank/src/architecture-linter.ts`
+- [class] `ArchitectureLinter` :: class ArchitectureLinter (L12-L423)
+- [method] `globToRegex` :: (pattern: string): RegExp (L16-L51)
+- [method] `matchPattern` :: (filePath: string, patterns: readonly string[]): boolean (L56-L82)
+- [method] `resolveLayer` :: (
+    node: NodeRecord,
+    config: ArchitectureConfig,
+    fileIdToPath?: Map<string, string>,
+  ): string | null (L87-L106)
+- [method] `lint` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    config: ArchitectureConfig,
+    fileIdToPath?: Map<string, string>,
+  ): ArchitectureLinterReport (L111-L335)
+- [method] `generateDefaultConfig` :: (
+    nodes: readonly NodeRecord[],
+    filePaths?: readonly string[],
+  ): ArchitectureConfig (L340-L422)
 
-### `packages/indexer/src/file-walker.ts`
-- [interface] `WalkedFile` :: interface WalkedFile (L7-L13)
-- [interface] `FileWalkerOptions` :: interface FileWalkerOptions (L15-L19)
-- [class] `FileWalker` :: class FileWalker (L21-L166)
-- [method] `constructor` :: (options: FileWalkerOptions) (L26-L73)
-- [method] `walk` :: (): Promise<readonly WalkedFile[]> (L75-L143)
-- [method] `detectLanguage` :: (filePath: string): SupportedLanguage | null (L145-L165)
+### `packages/rank/src/dijkstra.ts`
+- [interface] `QueueItem` :: interface QueueItem (L11-L14)
+- [class] `MinPriorityQueue` :: class MinPriorityQueue (L20-L87)
+- [method] `size` :: (): number (L23-L25)
+- [method] `isEmpty` :: (): boolean (L27-L29)
+- [method] `push` :: (element: T, priority: number): void (L31-L34)
+- [method] `pop` :: (): T | undefined (L36-L45)
+- [method] `bubbleUp` :: (idx: number): void (L47-L57)
+- [method] `sinkDown` :: (idx: number): void (L59-L86)
+- [interface] `DijkstraEdge` :: interface DijkstraEdge (L89-L95)
+- [class] `DijkstraEngine` :: class DijkstraEngine (L113-L573)
+- [method] `buildAdjacencyList` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    excludedEdgeIds: ReadonlySet<string> = new Set(),
+    fuzzy = false,
+  ): Map<string, DijkstraEdge[]> (L126-L179)
+- [method] `findShortestPath` :: (
+    sourceId: string,
+    targetId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    excludedEdgeIds: ReadonlySet<string> = new Set(),
+    fuzzy = false,
+  ): PathResult (L185-L337)
+- [method] `findKShortestPaths` :: (
+    sourceId: string,
+    targetId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    k = 3,
+    fuzzy = false,
+  ): KPathResult (L343-L491)
+- [method] `computeDijkstraHorizon` :: (
+    originId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    maxHops = 4,
+    minConfidence = 0.05,
+  ): DijkstraHorizonResult (L497-L572)
 
-### `packages/parser/src/grammar-loader.ts`
-- [class] `GrammarLoader` :: class GrammarLoader (L6-L67)
-- [method] `init` :: (): Promise<void> (L11-L16)
-- [method] `getWasmDir` :: (): string (L18-L26)
-- [method] `getLanguage` :: (lang: SupportedLanguage): Promise<Parser.Language> (L28-L66)
+### `packages/rank/src/fuzzy-inference.ts`
+- [class] `FuzzyInferenceEngine` :: class FuzzyInferenceEngine (L7-L523)
+- [method] `trimf` :: (x: number, a: number, b: number, c: number): number (L11-L16)
+- [method] `trapmf` :: (x: number, a: number, b: number, c: number, d: number): number (L21-L26)
+- [method] `sigmf` :: (x: number, a: number, c: number): number (L31-L33)
+- [method] `gaussmf` :: (x: number, sigma: number, c: number): number (L38-L41)
+- [method] `and` :: (a: number, b: number): number (L46-L48)
+- [method] `or` :: (a: number, b: number): number (L53-L55)
+- [method] `not` :: (a: number): number (L60-L62)
+- [method] `evaluateSymbolRisk` :: (
+    node: NodeRecord,
+    inboundCount: number,
+    outboundCount: number,
+    meanEdgeConfidence = 0.85,
+  ): FuzzyEvaluationResult (L68-L214)
+- [method] `evaluateEdgeImpedance` :: (
+    edgeConfidence: number,
+    src: NodeRecord,
+    dst: NodeRecord,
+    dstDegree = 1,
+  ): {
+    frictionMultiplier: number;
+    rawImpedance: number;
+    linguisticGrade: FuzzyLinguisticGrade;
+    rationale: string;
+  } (L223-L331)
+- [method] `evaluatePathImpedance` :: (
+    steps: readonly {
+      node: NodeRecord;
+      confidence?: number | undefined;
+      fuzzyStepImpedance?: number | undefined;
+    }[],
+  ): FuzzyEvaluationResult (L336-L406)
+- [method] `evaluateDeadCodeLikelihood` :: (
+    node: NodeRecord,
+    inboundCount: number,
+    outboundCount: number,
+    isExported: boolean,
+  ): FuzzyEvaluationResult (L411-L471)
+- [method] `evaluateGodComponentLikelihood` :: (
+    node: NodeRecord,
+    degree: number,
+  ): FuzzyEvaluationResult (L476-L522)
 
-### `packages/parser/src/parser-facade.ts`
-- [class] `CodeParser` :: class CodeParser (L11-L58)
-- [method] `init` :: (): Promise<void> (L14-L19)
-- [method] `parseFile` :: (
-    filePath: string,
-    content: string,
-    lang: SupportedLanguage,
-  ): Promise<ExtractorResult> (L21-L57)
+### `packages/rank/src/fuzzy-matcher.ts`
+- [interface] `FuzzyMatcherOptions` :: interface FuzzyMatcherOptions (L4-L8)
+- [class] `FuzzyMatcher` :: class FuzzyMatcher (L10-L252)
+- [method] `damerauLevenshteinDistance` :: (a: string, b: string): number (L14-L53)
+- [method] `editDistanceSimilarity` :: (a: string, b: string): number (L58-L63)
+- [method] `splitIdentifier` :: (name: string): readonly string[] (L69-L78)
+- [method] `acronymSimilarity` :: (query: string, targetName: string): number (L85-L131)
+- [method] `prefixBonus` :: (a: string, b: string): number (L136-L149)
+- [method] `computeSimilarity` :: (query: string, targetName: string): {
+    score: number;
+    details: {
+      editDistanceSim: number;
+      trigramSim: number;
+      acronymMatch: boolean;
+      prefixBonus: number;
+    };
+  } (L154-L210)
+- [method] `matchCandidates` :: (
+    queryWord: string,
+    nodes: readonly NodeRecord[],
+    options: FuzzyMatcherOptions = {},
+  ): readonly FuzzyMatchCandidate[] (L215-L251)
+
+### `packages/mcp/src/tools/lint-architecture.ts`
+- [function] `registerLintArchitectureTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+  projectRoot: string = ".",
+): void (L19-L132)
+
+### `packages/mcp/src/tools/recall-context.ts`
+- [function] `registerRecallContextTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+  projectRoot = ".",
+): void (L19-L93)
+
+### `packages/mcp/src/tools/save-context.ts`
+- [function] `registerSaveContextTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+  projectRoot = ".",
+): void (L33-L123)
+
+### `packages/rank/src/architecture.ts`
+- [class] `ArchitectureAnalyzer` :: class ArchitectureAnalyzer (L17-L408)
+- [method] `detectCycles` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+  ): readonly CycleInfo[] (L22-L104)
+- [function] `strongConnect` :: (v: string) (L48-L79)
+- [method] `detectOrphans` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+  ): readonly OrphanInfo[] (L110-L158)
+- [method] `calculateHealth` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+  ): ArchitectureHealthReport (L164-L313)
+- [method] `detectFuzzySmells` :: (
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+  ): readonly FuzzySmellItem[] (L318-L366)
+- [method] `findPath` :: (
+    sourceId: string,
+    targetId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    fuzzy = false,
+  ): PathResult (L372-L380)
+- [method] `findKPaths` :: (
+    sourceId: string,
+    targetId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    k = 3,
+    fuzzy = false,
+  ): KPathResult (L385-L394)
+- [method] `computeDijkstraHorizon` :: (
+    originId: string,
+    nodes: readonly NodeRecord[],
+    edges: readonly EdgeRecord[],
+    maxHops = 4,
+    minConfidence = 0.05,
+  ): DijkstraHorizonResult (L399-L407)
+
+### `packages/store/src/migrations.ts`
+- [function] `applyMigrations` :: (db: {
+  exec(sql: string): void;
+  prepare(sql: string): {
+    get(...args: unknown[]): unknown;
+    run(...args: unknown[]): unknown;
+  };
+}): void (L119-L147)
 
 ### `packages/store/src/sqlite-storage.ts`
-- [interface] `SqliteStorageOptions` :: interface SqliteStorageOptions (L14-L16)
-- [class] `SqliteStorage` :: class SqliteStorage (L18-L455)
-- [method] `constructor` :: (options: SqliteStorageOptions) (L22-L24)
-- [method] `init` :: (): Promise<void> (L26-L44)
-- [method] `close` :: (): Promise<void> (L46-L51)
-- [method] `getDatabase` :: (): DatabaseSync (L53-L58)
-- [method] `upsertFile` :: (file: FileRecord): Promise<void> (L62-L84)
-- [method] `getFile` :: (path: string): Promise<FileRecord | null> (L86-L107)
-- [method] `getAllFiles` :: (): Promise<readonly FileRecord[]> (L109-L126)
-- [method] `deleteFile` :: (path: string): Promise<void> (L128-L138)
-- [method] `upsertNodes` :: (nodes: readonly NodeRecord[]): Promise<void> (L142-L190)
-- [method] `deleteNodesByFileId` :: (fileId: string): Promise<void> (L192-L196)
-- [method] `getNodesByFileId` :: (fileId: string): Promise<readonly NodeRecord[]> (L198-L207)
-- [method] `getNodeById` :: (id: string): Promise<NodeRecord | null> (L209-L218)
-- [method] `findNodesByName` :: (name: string): Promise<readonly NodeRecord[]> (L220-L229)
-- [method] `getAllNodes` :: (): Promise<readonly NodeRecord[]> (L231-L240)
-- [method] `upsertEdges` :: (edges: readonly EdgeRecord[]): Promise<void> (L244-L272)
-- [method] `deleteEdgesByFileId` :: (fileId: string): Promise<void> (L274-L281)
-- [method] `getOutboundEdges` :: (srcId: string): Promise<readonly EdgeRecord[]> (L283-L292)
-- [method] `getInboundEdges` :: (dstId: string): Promise<readonly EdgeRecord[]> (L294-L303)
-- [method] `getAllEdges` :: (): Promise<readonly EdgeRecord[]> (L305-L314)
-- [method] `upsertUnresolvedRefs` :: (refs: readonly UnresolvedRefRecord[]): Promise<void> (L318-L337)
-- [method] `deleteUnresolvedRefsByFileId` :: (fileId: string): Promise<void> (L339-L342)
-- [method] `deleteUnresolvedRef` :: (id: string): Promise<void> (L344-L347)
-- [method] `getUnresolvedRefsByName` :: (name: string): Promise<readonly UnresolvedRefRecord[]> (L349-L365)
-- [method] `getAllUnresolvedRefs` :: (): Promise<readonly UnresolvedRefRecord[]> (L367-L381)
-- [method] `searchFts` :: (query: string, limit = 20): Promise<readonly FtsSearchResult[]> (L385-L410)
-- [method] `getStats` :: (): Promise<StorageStats> (L414-L427)
-- [method] `mapNodeRecord` :: (row: Record<string, unknown>): NodeRecord (L429-L442)
-- [method] `mapEdgeRecord` :: (row: Record<string, unknown>): EdgeRecord (L444-L454)
+- [interface] `SqliteStorageOptions` :: interface SqliteStorageOptions (L15-L17)
+- [class] `SqliteStorage` :: class SqliteStorage (L19-L533)
+- [method] `constructor` :: (options: SqliteStorageOptions) (L23-L25)
+- [method] `init` :: (): Promise<void> (L27-L45)
+- [method] `close` :: (): Promise<void> (L47-L52)
+- [method] `getDatabase` :: (): DatabaseSync (L54-L59)
+- [method] `upsertFile` :: (file: FileRecord): Promise<void> (L63-L85)
+- [method] `getFile` :: (path: string): Promise<FileRecord | null> (L87-L108)
+- [method] `getAllFiles` :: (): Promise<readonly FileRecord[]> (L110-L127)
+- [method] `deleteFile` :: (path: string): Promise<void> (L129-L139)
+- [method] `upsertNodes` :: (nodes: readonly NodeRecord[]): Promise<void> (L143-L191)
+- [method] `deleteNodesByFileId` :: (fileId: string): Promise<void> (L193-L197)
+- [method] `getNodesByFileId` :: (fileId: string): Promise<readonly NodeRecord[]> (L199-L208)
+- [method] `getNodeById` :: (id: string): Promise<NodeRecord | null> (L210-L219)
+- [method] `findNodesByName` :: (name: string): Promise<readonly NodeRecord[]> (L221-L230)
+- [method] `getAllNodes` :: (): Promise<readonly NodeRecord[]> (L232-L241)
+- [method] `upsertEdges` :: (edges: readonly EdgeRecord[]): Promise<void> (L245-L273)
+- [method] `deleteEdgesByFileId` :: (fileId: string): Promise<void> (L275-L282)
+- [method] `getOutboundEdges` :: (srcId: string): Promise<readonly EdgeRecord[]> (L284-L293)
+- [method] `getInboundEdges` :: (dstId: string): Promise<readonly EdgeRecord[]> (L295-L304)
+- [method] `getAllEdges` :: (): Promise<readonly EdgeRecord[]> (L306-L315)
+- [method] `upsertUnresolvedRefs` :: (refs: readonly UnresolvedRefRecord[]): Promise<void> (L319-L338)
+- [method] `deleteUnresolvedRefsByFileId` :: (fileId: string): Promise<void> (L340-L343)
+- [method] `deleteUnresolvedRef` :: (id: string): Promise<void> (L345-L348)
+- [method] `getUnresolvedRefsByName` :: (name: string): Promise<readonly UnresolvedRefRecord[]> (L350-L366)
+- [method] `getAllUnresolvedRefs` :: (): Promise<readonly UnresolvedRefRecord[]> (L368-L382)
+- [method] `searchFts` :: (query: string, limit = 20): Promise<readonly FtsSearchResult[]> (L386-L411)
+- [method] `getStats` :: (): Promise<StorageStats> (L415-L428)
+- [method] `mapNodeRecord` :: (row: Record<string, unknown>): NodeRecord (L430-L443)
+- [method] `mapEdgeRecord` :: (row: Record<string, unknown>): EdgeRecord (L445-L455)
+- [method] `saveVibeMemory` :: (memory: VibeMemoryRecord): Promise<void> (L459-L477)
+- [method] `getLatestVibeMemory` :: (): Promise<VibeMemoryRecord | null> (L479-L487)
+- [method] `getAllVibeMemories` :: (limit = 20): Promise<readonly VibeMemoryRecord[]> (L489-L496)
+- [method] `mapVibeMemoryRecord` :: (row: Record<string, unknown>): VibeMemoryRecord (L498-L532)
 
 ### `packages/store/src/types.ts`
 - [interface] `FtsSearchResult` :: interface FtsSearchResult (L8-L11)
 - [interface] `StorageStats` :: interface StorageStats (L13-L18)
-- [interface] `Storage` :: interface Storage (L20-L57)
+- [interface] `Storage` :: interface Storage (L20-L62)
+
+### `packages/ui/src/template.ts`
+- [interface] `GraphPayload` :: interface GraphPayload (L1-L36)
+- [function] `renderGraphHtml` :: (payload: GraphPayload): string (L38-L1244)
+
+### `packages/mcp/src/tools/analyze-architecture.ts`
+- [function] `registerAnalyzeArchitectureTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+): void (L21-L102)
+
+### `packages/mcp/src/tools/ask-code.ts`
+- [function] `registerAskCodeTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+  pipeline?: RetrievalPipeline,
+): void (L33-L122)
+
+### `packages/mcp/src/tools/find-path.ts`
+- [function] `registerFindPathTool` :: (
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  server: any,
+  storage: Storage,
+): void (L28-L186)
+
+### `packages/parser/src/extractors/csharp-extractor.ts`
+- [class] `CSharpExtractor` :: class CSharpExtractor (L14-L331)
+- [method] `constructor` :: (filePath: string) (L21-L24)
+- [method] `extract` :: (tree: Parser.Tree, sourceContent: string): ExtractorResult (L26-L55)
+- [method] `visitNode` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+    enclosingClassName: string | null,
+  ): void (L57-L121)
+- [method] `extractNamespace` :: (node: Parser.SyntaxNode, currentParentId: string): NodeRecord | null (L123-L143)
+- [method] `extractType` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+    enclosingClassName: string | null,
+  ): NodeRecord | null (L145-L217)
+- [method] `extractMethod` :: (
+    node: Parser.SyntaxNode,
+    enclosingClassName: string | null,
+  ): NodeRecord | null (L219-L255)
+- [method] `extractUsing` :: (node: Parser.SyntaxNode, currentParentId: string): void (L257-L274)
+- [method] `extractCall` :: (node: Parser.SyntaxNode, currentParentId: string): void (L276-L302)
+- [method] `extractPrecedingDocComment` :: (node: Parser.SyntaxNode): string | null (L304-L317)
+- [method] `createContainsEdge` :: (parentId: string, childId: string): void (L319-L330)
+
+### `packages/parser/src/extractors/java-extractor.ts`
+- [class] `JavaExtractor` :: class JavaExtractor (L14-L318)
+- [method] `constructor` :: (filePath: string) (L21-L24)
+- [method] `extract` :: (tree: Parser.Tree, sourceContent: string): ExtractorResult (L26-L55)
+- [method] `visitNode` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+    enclosingClassName: string | null,
+  ): void (L57-L119)
+- [method] `extractPackage` :: (node: Parser.SyntaxNode, currentParentId: string): NodeRecord | null (L121-L140)
+- [method] `extractType` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+    enclosingClassName: string | null,
+  ): NodeRecord | null (L142-L217)
+- [method] `extractMethod` :: (
+    node: Parser.SyntaxNode,
+    enclosingClassName: string | null,
+  ): NodeRecord | null (L219-L255)
+- [method] `extractImport` :: (node: Parser.SyntaxNode, currentParentId: string): void (L257-L274)
+- [method] `extractCall` :: (node: Parser.SyntaxNode, currentParentId: string): void (L276-L296)
+- [method] `extractPrecedingDocComment` :: (node: Parser.SyntaxNode): string | null (L298-L304)
+- [method] `createContainsEdge` :: (parentId: string, childId: string): void (L306-L317)
+
+### `packages/core/src/types.ts`
+- [interface] `FileRecord` :: interface FileRecord (L45-L53)
+- [interface] `NodeRecord` :: interface NodeRecord (L55-L66)
+- [interface] `EdgeRecord` :: interface EdgeRecord (L68-L76)
+- [interface] `UnresolvedRefRecord` :: interface UnresolvedRefRecord (L78-L85)
+- [interface] `GlossaryTerm` :: interface GlossaryTerm (L87-L92)
+- [interface] `CredibleInterval` :: interface CredibleInterval (L94-L98)
+- [function] `computeBetaCredibleInterval` :: (alpha: number, beta: number): CredibleInterval (L104-L122)
+- [interface] `ProjectConfig` :: interface ProjectConfig (L124-L131)
+- [interface] `CycleInfo` :: interface CycleInfo (L133-L139)
+- [interface] `OrphanInfo` :: interface OrphanInfo (L141-L144)
+- [interface] `SubsystemCoupling` :: interface SubsystemCoupling (L146-L152)
+- [interface] `FuzzySmellItem` :: interface FuzzySmellItem (L154-L158)
+- [interface] `ArchitectureHealthReport` :: interface ArchitectureHealthReport (L160-L175)
+- [interface] `ArchitectureRule` :: interface ArchitectureRule (L177-L181)
+- [interface] `ArchitectureConfig` :: interface ArchitectureConfig (L183-L186)
+- [interface] `ArchitecturalViolation` :: interface ArchitecturalViolation (L188-L200)
+- [interface] `ArchitectureLinterReport` :: interface ArchitectureLinterReport (L202-L215)
+- [interface] `PathResult` :: interface PathResult (L217-L232)
+- [interface] `DijkstraHorizonNode` :: interface DijkstraHorizonNode (L234-L239)
+- [interface] `DijkstraHorizonResult` :: interface DijkstraHorizonResult (L241-L245)
+- [interface] `KPathResult` :: interface KPathResult (L247-L253)
+- [interface] `VibeMemoryRecord` :: interface VibeMemoryRecord (L255-L265)
+- [interface] `AiNativeContextManifest` :: interface AiNativeContextManifest (L267-L288)
+- [interface] `FuzzySetDefinition` :: interface FuzzySetDefinition (L295-L299)
+- [interface] `LinguisticVariable` :: interface LinguisticVariable (L301-L306)
+- [interface] `FuzzyEvaluationResult` :: interface FuzzyEvaluationResult (L310-L315)
+- [interface] `FuzzyMatchCandidate` :: interface FuzzyMatchCandidate (L317-L326)
+
+### `packages/parser/src/grammar-loader.ts`
+- [class] `GrammarLoader` :: class GrammarLoader (L6-L79)
+- [method] `init` :: (): Promise<void> (L11-L16)
+- [method] `getWasmDir` :: (): string (L18-L26)
+- [method] `getLanguage` :: (lang: SupportedLanguage): Promise<Parser.Language> (L28-L78)
+
+### `packages/parser/src/parser-facade.ts`
+- [class] `CodeParser` :: class CodeParser (L15-L78)
+- [method] `init` :: (): Promise<void> (L18-L23)
+- [method] `parseFile` :: (
+    filePath: string,
+    content: string,
+    lang: SupportedLanguage,
+  ): Promise<ExtractorResult> (L25-L77)
+
+### `packages/parser/src/extractors/go-extractor.ts`
+- [class] `GoExtractor` :: class GoExtractor (L14-L393)
+- [method] `constructor` :: (filePath: string) (L22-L25)
+- [method] `extract` :: (tree: Parser.Tree, sourceContent: string): ExtractorResult (L27-L56)
+- [method] `visitNode` :: (node: Parser.SyntaxNode, currentParentId: string): void (L58-L112)
+- [method] `extractPackage` :: (node: Parser.SyntaxNode, currentParentId: string): void (L114-L140)
+- [method] `extractTypeDeclaration` :: (node: Parser.SyntaxNode, currentParentId: string): void (L142-L185)
+- [method] `extractInterfaceMethods` :: (interfaceNode: Parser.SyntaxNode, interfaceNodeId: string, interfaceName: string): void (L187-L220)
+- [method] `extractFunction` :: (node: Parser.SyntaxNode): NodeRecord | null (L222-L254)
+- [method] `extractMethod` :: (node: Parser.SyntaxNode): { node: NodeRecord; receiverType: string | null } | null (L256-L304)
+- [method] `extractImport` :: (node: Parser.SyntaxNode, currentParentId: string): void (L306-L335)
+- [function] `walkImports` :: (n: Parser.SyntaxNode) (L310-L332)
+- [method] `extractCall` :: (node: Parser.SyntaxNode, currentParentId: string): void (L337-L364)
+- [method] `extractPrecedingDocComment` :: (node: Parser.SyntaxNode): string | null (L366-L379)
+- [method] `createContainsEdge` :: (parentId: string, childId: string): void (L381-L392)
+
+### `packages/parser/src/extractors/rust-extractor.ts`
+- [class] `RustExtractor` :: class RustExtractor (L14-L414)
+- [method] `constructor` :: (filePath: string) (L22-L25)
+- [method] `extract` :: (tree: Parser.Tree, sourceContent: string): ExtractorResult (L27-L56)
+- [method] `visitNode` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+    enclosingTypeName: string | null,
+  ): void (L58-L159)
+- [method] `extractStructOrEnum` :: (node: Parser.SyntaxNode, currentParentId: string): NodeRecord | null (L161-L188)
+- [method] `extractTrait` :: (node: Parser.SyntaxNode, currentParentId: string): NodeRecord | null (L190-L215)
+- [method] `extractImpl` :: (
+    node: Parser.SyntaxNode,
+    currentParentId: string,
+  ): { targetTypeName: string; targetNodeId: string | null } | null (L217-L246)
+- [method] `extractFunction` :: (
+    node: Parser.SyntaxNode,
+    enclosingTypeName: string | null,
+  ): NodeRecord | null (L248-L289)
+- [method] `extractUse` :: (node: Parser.SyntaxNode, currentParentId: string): void (L291-L319)
+- [function] `walkUse` :: (n: Parser.SyntaxNode) (L295-L316)
+- [method] `addImportRef` :: (name: string, line: number, currentParentId: string): void (L321-L333)
+- [method] `extractCall` :: (node: Parser.SyntaxNode, currentParentId: string): void (L335-L366)
+- [method] `extractMacro` :: (node: Parser.SyntaxNode, currentParentId: string): void (L368-L385)
+- [method] `extractDocComment` :: (node: Parser.SyntaxNode): string | null (L387-L400)
+- [method] `createContainsEdge` :: (parentId: string, childId: string): void (L402-L413)
+
+### `fixtures/languages/csharp/PaymentService.cs`
+- [module] `Ruas.Payment` :: namespace Ruas.Payment (L4-L39)
+- [class] `PaymentService` :: public class PaymentService (L9-L39)
+- [method] `PaymentService` :: PaymentService(string merchantId) (L13-L16)
+- [method] `ProcessPayment` :: bool ProcessPayment(string orderId, decimal amount) (L21-L30)
+- [method] `ValidateOrder` :: void ValidateOrder(string orderId) (L32-L34)
+- [method] `PersistPayment` :: void PersistPayment(string orderId, decimal amount) (L36-L38)
+
+### `fixtures/languages/go/payment.go`
+- [module] `payment` :: package payment (L1-L1)
+- [class] `PaymentGateway` :: type PaymentGateway struct (L9-L11)
+- [interface] `PaymentContract` :: type PaymentContract interface (L14-L16)
+- [method] `Pay` :: Pay(ctx context.Context, orderID string, amount int64) (string, error) (L15-L15)
+- [method] `Pay` :: func (p *PaymentGateway) Pay(ctx context.Context, orderID string, amount int64) (string, error) (L19-L25)
+- [function] `CalculateFee` :: func CalculateFee(amount int64) int64 (L28-L30)
+
+### `fixtures/languages/java/PaymentService.java`
+- [module] `com.ruas.payment` :: package com.ruas.payment (L1-L1)
+- [class] `PaymentService` :: public class PaymentService (L9-L35)
+- [method] `PaymentService` :: PaymentService(String apiKey) (L12-L14)
+- [method] `processPayment` :: boolean processPayment(String customerId, long amount) (L19-L26)
+- [method] `validateCustomer` :: void validateCustomer(String customerId) (L28-L30)
+- [method] `recordTransaction` :: void recordTransaction(String customerId, long amount) (L32-L34)
+
+### `fixtures/languages/rust/payment.rs`
+- [class] `PaymentGateway` :: pub struct PaymentGateway (L4-L7)
+- [interface] `PaymentContract` :: pub trait PaymentContract (L10-L12)
+- [method] `new` :: fn new(merchant_id: String) -> Self (L15-L20)
+- [method] `pay` :: fn pay(&self, order_id: &str, amount: u64) -> Result<String, String> (L24-L30)
+- [function] `calculate_fee` :: fn calculate_fee(amount: u64) -> u64 (L33-L35)
+
+### `packages/eval/src/ablation-runner.ts`
+- [interface] `VariantResult` :: interface VariantResult (L29-L34)
+- [interface] `GroupedMetricSummary` :: interface GroupedMetricSummary (L36-L46)
+- [interface] `AblationReport` :: interface AblationReport (L48-L62)
+- [class] `AblationRunner` :: class AblationRunner (L64-L344)
+- [method] `constructor` :: (tempDir?: string) (L72-L74)
+- [method] `setup` :: (): Promise<void> (L76-L108)
+- [method] `teardown` :: (): Promise<void> (L110-L115)
+- [method] `runBenchmark` :: (): Promise<AblationReport> (L117-L199)
+- [function] `inferLanguage` :: (q: BenchmarkQuery): string (L150-L159)
+- [method] `computeGroupedMetrics` :: (
+    queries: readonly BenchmarkQuery[],
+    bm25Results: readonly QueryEvaluationResult[],
+    fullResults: readonly QueryEvaluationResult[],
+    groupFn: (q: BenchmarkQuery) => string,
+  ): readonly GroupedMetricSummary[] (L201-L239)
+- [method] `evaluateVariant` :: (
+    variant: AblationVariant,
+    queries: readonly BenchmarkQuery[],
+  ): Promise<readonly QueryEvaluationResult[]> (L241-L274)
+- [method] `retrieve` :: (variant: AblationVariant, queryText: string): Promise<readonly string[]> (L276-L330)
+- [method] `getVariantName` :: (variant: AblationVariant): string (L332-L343)
+
+### `packages/eval/src/dataset.ts`
+- [interface] `BenchmarkFile` :: interface BenchmarkFile (L12-L16)
+- [interface] `BenchmarkQuery` :: interface BenchmarkQuery (L18-L26)
+
+### `packages/eval/src/run-eval.ts`
+- [function] `main` :: (): Promise<void> (L3-L90)
+- [function] `pad` :: (str: string, len: number) (L22-L22)
+- [function] `num` :: (n: number, len: number, decimals = 4) (L23-L23)
+
+### `packages/rank/src/retrieval-pipeline.ts`
+- [interface] `RetrievedSymbol` :: interface RetrievedSymbol (L16-L25)
+- [interface] `RetrievalResult` :: interface RetrievalResult (L27-L33)
+- [class] `RetrievalPipeline` :: class RetrievalPipeline (L35-L258)
+- [method] `constructor` :: (storage: Storage, glossaryExpander?: GlossaryExpander) (L41-L46)
+- [method] `search` :: (
+    queryText: string,
+    limit = 10,
+    enableRoast = false,
+  ): Promise<RetrievalResult> (L48-L237)
+- [method] `generateEmotionalDamageRoast` :: (
+    node: NodeRecord,
+    inboundCount: number,
+    outboundCount: number,
+    risk: RetrievedSymbol["riskLevel"],
+    fuzzyScore?: number,
+  ): string (L239-L257)
+
+### `examples/test-project/legacy/billing.php`
+- [class] `InvoiceGenerator` :: class InvoiceGenerator (L3-L12)
+- [method] `generateInvoiceNumber` :: function generateInvoiceNumber($orderId) (L4-L6)
+- [method] `processTaxInvoice` :: function processTaxInvoice($amount) (L8-L11)
+
+### `examples/test-project/services/notifier.py`
+- [function] `send_push_notification` :: def send_push_notification(user_id: str, message: str) -> bool (L1-L3)
+- [class] `PaymentNotifier` :: class PaymentNotifier (L5-L12)
+- [method] `__init__` :: def __init__(self, channel: str = "firebase") (L7-L8)
+- [method] `notify_payment_success` :: def notify_payment_success(self, user_id: str, amount: float, trx_id: str) -> bool (L10-L12)
+
+### `examples/test-project/src/auth.ts`
+- [interface] `UserSession` :: interface UserSession (L1-L5)
+- [function] `verifySession` :: (token: string): UserSession | null (L7-L14)
+- [function] `authorizeCheckout` :: (token: string): boolean (L16-L19)
+
+### `examples/test-project/src/discount.ts`
+- [interface] `DiscountResult` :: interface DiscountResult (L1-L5)
+- [function] `calculateDirectDiscount` :: (amount: number, percentage: number): number (L7-L9)
+- [function] `applyVoucher` :: (code: string, amount: number): DiscountResult (L11-L26)
+
+### `examples/test-project/src/order.ts`
+- [interface] `OrderRequest` :: interface OrderRequest (L5-L11)
+- [function] `calculateGrandTotal` :: (subtotal: number, voucherCode?: string): number (L13-L19)
+- [function] `checkoutOrder` :: (order: OrderRequest): PaymentResult (L21-L34)
+
+### `examples/test-project/src/payment.ts`
+- [interface] `PaymentResult` :: interface PaymentResult (L1-L6)
+- [function] `chargeGateway` :: (provider: string, amount: number): boolean (L8-L11)
+- [function] `prosesQRIS` :: (transactionId: string, amount: number): PaymentResult (L13-L21)
+- [function] `prosesVirtualAccount` :: (transactionId: string, bank: string, amount: number): PaymentResult (L23-L31)
+
+### `packages/cli/src/index.ts`
+- [function] `stop` :: () (L325-L330)
+- [function] `shutdown` :: () (L433-L438)
+- [function] `lintAction` :: (
+  targetPath: string,
+  options: {
+    config?: string;
+    init?: boolean;
+    strict?: boolean;
+    json?: boolean;
+    db?: string;
+  },
+) (L686-L864)
+
+### `packages/indexer/src/file-walker.ts`
+- [interface] `WalkedFile` :: interface WalkedFile (L7-L13)
+- [interface] `FileWalkerOptions` :: interface FileWalkerOptions (L15-L19)
+- [class] `FileWalker` :: class FileWalker (L21-L189)
+- [method] `constructor` :: (options: FileWalkerOptions) (L26-L84)
+- [method] `walk` :: (): Promise<readonly WalkedFile[]> (L86-L158)
+- [method] `detectLanguage` :: (filePath: string): SupportedLanguage | null (L160-L188)
+
+### `packages/mcp/src/server.ts`
+- [interface] `RuasMcpServerOptions` :: interface RuasMcpServerOptions (L13-L17)
+- [function] `createRuasMcpServer` :: (
+  storage: Storage,
+  options?: RuasMcpServerOptions,
+): McpServer (L19-L40)
+- [function] `runStdioServer` :: (
+  storage: Storage,
+  options?: RuasMcpServerOptions,
+): Promise<void> (L42-L64)
+- [function] `shutdown` :: () (L52-L60)

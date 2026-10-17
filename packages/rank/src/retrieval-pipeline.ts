@@ -57,10 +57,17 @@ export class RetrievalPipeline {
 
     // 2. Lexical BM25 Search
     const ftsHits = await this.storage.searchFts(expanded.ftsQuery, 50);
-    // Prioritize symbol nodes over container file nodes for code symbol queries
+    // Prioritize symbol nodes over container file and module nodes for code symbol queries
     const allLexicalNodes = ftsHits.map((h) => h.node);
-    const symbolLexicalNodes = allLexicalNodes.filter((n) => n.kind !== "file");
-    const lexicalNodes = symbolLexicalNodes.length > 0 ? symbolLexicalNodes : allLexicalNodes;
+    const concreteSymbols = allLexicalNodes.filter(
+      (n) => n.kind === "function" || n.kind === "method" || n.kind === "class" || n.kind === "interface" || n.kind === "route",
+    );
+    const nonFileNodes = allLexicalNodes.filter((n) => n.kind !== "file");
+    const lexicalNodes = concreteSymbols.length > 0
+      ? [...concreteSymbols, ...allLexicalNodes.filter((n) => !concreteSymbols.includes(n) && n.kind !== "file")]
+      : nonFileNodes.length > 0
+        ? nonFileNodes
+        : allLexicalNodes;
 
     // 3. Systematic Fuzzy Matching (Acronyms, Damerau-Levenshtein, Trigrams, Sub-words)
     const STOP_TOKENS = new Set([
@@ -167,8 +174,8 @@ export class RetrievalPipeline {
 
     const weights = new Map<string, number>([
       ["bm25", 1.0],
-      ["fuzzy", 0.35],
-      ["ppr", 0.25],
+      ["fuzzy", 0.20],
+      ["ppr", 0.15],
     ]);
 
     const fused = this.rrf.fuse(systems, (n) => n.id, weights);

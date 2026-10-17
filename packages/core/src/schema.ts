@@ -8,6 +8,10 @@ export const SupportedLanguageSchema = z.enum([
   "jsx",
   "php",
   "python",
+  "go",
+  "rust",
+  "java",
+  "csharp",
 ]);
 
 export const NodeKindSchema = z.enum(NODE_KINDS);

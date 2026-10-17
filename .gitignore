@@ -9,3 +9,4 @@ coverage/
 *.tsbuildinfo
 .tmp/
 tmp/
+docs/graph.*

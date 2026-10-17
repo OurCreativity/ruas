@@ -6,6 +6,16 @@ import type { Storage } from "@ruas/store";
 import { ArchitectureLinter } from "@ruas/rank";
 
 export const LintArchitectureInputSchema = {
+  preset: z
+    .enum([
+      "clean-architecture",
+      "hexagonal",
+      "onion",
+      "feature-sliced-design",
+      "modular-monolith",
+    ])
+    .optional()
+    .describe("Built-in architecture preset name (clean-architecture, hexagonal, onion, feature-sliced-design, modular-monolith)."),
   configJson: z
     .string()
     .optional()
@@ -27,9 +37,11 @@ export function registerLintArchitectureTool(
     "Lint codebase against architectural layer boundaries, detecting forbidden dependencies, Clean Architecture breaches, and computing continuous fuzzy violation severity scores.",
     LintArchitectureInputSchema,
     async ({
+      preset,
       configJson,
       configPath,
     }: {
+      preset?: string | undefined;
       configJson?: string | undefined;
       configPath?: string | undefined;
     }) => {
@@ -38,7 +50,11 @@ export function registerLintArchitectureTool(
 
       let config: ArchitectureConfig | null = null;
 
-      if (configJson) {
+      if (preset) {
+        config = ArchitectureLinter.getPreset(preset) ?? null;
+      }
+
+      if (!config && configJson) {
         try {
           config = JSON.parse(configJson) as ArchitectureConfig;
         } catch (e) {

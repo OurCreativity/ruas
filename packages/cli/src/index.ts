@@ -29,8 +29,8 @@ const program = new Command();
 
 program
   .name("ruas")
-  .description("Universal Code Intelligence Engine with Merciless Calibration & Multilingual Graph Retrieval")
-  .version("1.3.0");
+  .description("Universal Code Intelligence Engine with Bayesian Graph Retrieval, Multi-Language ASTs & MCP Integration")
+  .version("1.4.0");
 
 // --- ruas index ---
 program
@@ -278,7 +278,7 @@ program
     }
 
     const storage = new SqliteStorage({ dbPath });
-    await runStdioServer(storage, { name: "ruas", version: "0.1.0" });
+    await runStdioServer(storage, { name: "ruas", version: "1.4.0", projectRoot: rootDir });
   });
 
 // --- ruas watch ---
@@ -687,6 +687,7 @@ const lintAction = async (
   targetPath: string,
   options: {
     config?: string;
+    preset?: string;
     init?: boolean;
     strict?: boolean;
     json?: boolean;
@@ -711,13 +712,13 @@ const lintAction = async (
       await storage.close();
     }
 
-    const generatedConfig = ArchitectureLinter.generateDefaultConfig(nodes);
+    const generatedConfig = ArchitectureLinter.generateDefaultConfig(nodes, undefined, options.preset);
     writeFileSync(defaultConfigFile, JSON.stringify(generatedConfig, null, 2), "utf-8");
 
     if (options.json) {
-      console.log(JSON.stringify({ created: defaultConfigFile, config: generatedConfig }, null, 2));
+      console.log(JSON.stringify({ created: defaultConfigFile, preset: options.preset ?? "clean-architecture", config: generatedConfig }, null, 2));
     } else {
-      console.log(pc.green(`\n✓ Generated Clean Architecture boundary configuration:`));
+      console.log(pc.green(`\n✓ Generated ${options.preset ? pc.bold(options.preset) : "Clean Architecture"} boundary configuration:`));
       console.log(`  File: ${pc.bold(defaultConfigFile)}`);
       console.log(`  Layers: ${pc.cyan(Object.keys(generatedConfig.layers).join(", "))}`);
       console.log(`  Rules: ${pc.yellow(generatedConfig.rules.length)} dependency inversion boundaries defined.\n`);
@@ -760,7 +761,15 @@ const lintAction = async (
     await storage.close();
 
     let config: ArchitectureConfig;
-    if (configPath && existsSync(configPath)) {
+    if (options.preset) {
+      const p = ArchitectureLinter.getPreset(options.preset);
+      if (p) {
+        config = p;
+      } else {
+        console.warn(pc.yellow(`⚠ Unknown preset '${options.preset}'. Falling back to default.`));
+        config = ArchitectureLinter.generateDefaultConfig(nodes);
+      }
+    } else if (configPath && existsSync(configPath)) {
       const raw = readFileSync(configPath, "utf-8");
       config = JSON.parse(raw) as ArchitectureConfig;
     } else {
@@ -868,7 +877,8 @@ program
   .description("Lint codebase against architectural layer boundaries with fuzzy violation scoring")
   .argument("[path]", "Path to project directory", ".")
   .option("-c, --config <path>", "Path to architecture configuration JSON")
-  .option("--init", "Generate default Clean Architecture configuration (.ruas/architecture.json)")
+  .option("-p, --preset <name>", "Built-in preset (clean-architecture, hexagonal, onion, feature-sliced-design, modular-monolith)")
+  .option("--init", "Generate architecture configuration (.ruas/architecture.json)")
   .option("--strict", "Exit with non-zero code if purity is below 80 or critical violations exist")
   .option("--db <path>", "Custom database path")
   .option("--json", "Output results in JSON format", false)
@@ -879,7 +889,8 @@ program
   .description("Alias for 'ruas lint'")
   .argument("[path]", "Path to project directory", ".")
   .option("-c, --config <path>", "Path to architecture configuration JSON")
-  .option("--init", "Generate default Clean Architecture configuration (.ruas/architecture.json)")
+  .option("-p, --preset <name>", "Built-in preset (clean-architecture, hexagonal, onion, feature-sliced-design, modular-monolith)")
+  .option("--init", "Generate architecture configuration (.ruas/architecture.json)")
   .option("--strict", "Exit with non-zero code if purity is below 80 or critical violations exist")
   .option("--db <path>", "Custom database path")
   .option("--json", "Output results in JSON format", false)

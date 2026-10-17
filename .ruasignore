@@ -1,0 +1,3 @@
+# Ruas-specific ignore rules (applies when indexing)
+fixtures/
+examples/

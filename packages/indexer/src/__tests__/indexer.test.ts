@@ -58,6 +58,22 @@ export function getCustomerData(id: string): Customer {
     expect(paths.some((p) => p.includes("node_modules"))).toBe(false);
   });
 
+  it("respects .ruasignore file when present", async () => {
+    writeFileSync(join(FIXTURE_DIR, "ignored-by-ruas.ts"), "export const ignored = true;");
+    writeFileSync(join(FIXTURE_DIR, ".ruasignore"), "ignored-by-ruas.ts\n");
+
+    const walker = new FileWalker({ rootDir: FIXTURE_DIR });
+    const files = await walker.walk();
+    const paths = files.map((f) => f.relativePath);
+
+    expect(paths).toContain("discount.ts");
+    expect(paths).not.toContain("ignored-by-ruas.ts");
+
+    // Clean up
+    rmSync(join(FIXTURE_DIR, "ignored-by-ruas.ts"), { force: true });
+    rmSync(join(FIXTURE_DIR, ".ruasignore"), { force: true });
+  });
+
   it("runs cold indexing and stores AST nodes and edges", async () => {
     const storage = new SqliteStorage({ dbPath: ":memory:" });
     const indexer = new Indexer(storage);
