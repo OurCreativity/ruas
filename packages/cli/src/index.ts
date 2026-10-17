@@ -128,7 +128,7 @@ program
         totalNodes: stats.nodeCount,
         totalEdges: stats.edgeCount,
         totalUnresolvedRefs: stats.unresolvedCount,
-        latestIndexedAt: files.reduce((max, f) => Math.max(max, f.indexedAt), 0),
+        latestIndexedAt: files.reduce((max: number, f: { indexedAt: number }) => Math.max(max, f.indexedAt), 0),
       };
 
       if (options.json) {
