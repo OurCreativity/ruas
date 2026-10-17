@@ -3,6 +3,12 @@
 > **Universal Code Intelligence Engine with Bayesian Calibration & Multilingual Graph Retrieval**  
 > Offline-first, zero-external-API, statistically calibrated code property graph for AI agents (via MCP) and human developers.
 
+[![npm](https://img.shields.io/npm/v/@fk0u/ruas?style=for-the-badge&logo=npm&color=CB3837)](https://www.npmjs.com/package/@fk0u/ruas)
+[![GitHub Release](https://img.shields.io/github/v/release/OurCreativity/ruas?style=for-the-badge&logo=github&color=2563EB&label=Release)](https://github.com/OurCreativity/ruas/releases/latest)
+[![CI](https://img.shields.io/github/actions/workflow/status/OurCreativity/ruas/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/OurCreativity/ruas/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
+[![Node](https://img.shields.io/badge/node-%E2%89%A522-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
+
 ---
 
 ## ⚡ Product Philosophy

@@ -9,6 +9,7 @@
 Multilingual graph retrieval · Bayesian-calibrated blast radius · Fuzzy architecture linting · MCP-native.
 
 [![npm](https://img.shields.io/npm/v/@fk0u/ruas?style=for-the-badge&logo=npm&color=CB3837)](https://www.npmjs.com/package/@fk0u/ruas)
+[![GitHub Release](https://img.shields.io/github/v/release/OurCreativity/ruas?style=for-the-badge&logo=github&color=2563EB&label=Release)](https://github.com/OurCreativity/ruas/releases/latest)
 [![CI](https://img.shields.io/github/actions/workflow/status/OurCreativity/ruas/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/OurCreativity/ruas/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green?style=for-the-badge)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%E2%89%A522-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org)
@@ -16,14 +17,26 @@ Multilingual graph retrieval · Bayesian-calibrated blast radius · Fuzzy archit
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
 ![SQLite](https://img.shields.io/badge/SQLite-WAL%20%2B%20FTS5-003B57?logo=sqlite&logoColor=white)
 ![MCP](https://img.shields.io/badge/MCP-8%20tools-7C3AED)
-![Tests](https://img.shields.io/badge/tests-117%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-121%20passing-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-86.9%25%20V8-success)
 ![Offline](https://img.shields.io/badge/cloud%20APIs-zero-orange)
 ![Languages](https://img.shields.io/badge/languages-TS%20%C2%B7%20JS%20%C2%B7%20PHP%20%C2%B7%20Python%20%C2%B7%20Go%20%C2%B7%20Rust%20%C2%B7%20Java%20%C2%B7%20C%23-informational)
 ![pnpm](https://img.shields.io/badge/pnpm-workspace-F69220?logo=pnpm&logoColor=white)
 
-[Quick Start](#-quick-start) · [How it works](#-how-it-works) · [CLI](#-cli-cheat-sheet) · [MCP](#-mcp-for-ai-agents) · [Benchmarks](#-benchmarks) · [Contributing](CONTRIBUTING.md)
+[Installation](#-installation--quick-start) · [Latest Release](https://github.com/OurCreativity/ruas/releases/latest) · [How it works](#-how-it-works) · [CLI](#-cli-cheat-sheet) · [MCP](#-mcp-for-ai-agents) · [Benchmarks](#-benchmarks) · [Contributing](CONTRIBUTING.md)
 
 </div>
+
+---
+
+## 📢 Latest Release: [v1.4.0](https://github.com/OurCreativity/ruas/releases/tag/v1.4.0)
+
+> **Universal Code Intelligence across 8 Languages with Extended Presets & Stdio MCP**
+> - **4 New Language Extractors**: Full AST extraction for Go, Rust, Java, and C# via Tree-sitter WASM.
+> - **90-Query Multilingual Benchmark**: Evaluated over TS, PHP, Python, Go, Rust, Java; verified statistical superiority ($p < 0.05$).
+> - **5 Extended Architecture Presets**: Clean Architecture, Hexagonal, Onion, Feature-Sliced Design (FSD), and Modular Monolith via `--preset <name>`.
+> - **Cross-Platform Stdio MCP**: Tested end-to-end over live subprocess JSON-RPC across Linux, macOS, and Windows.
+> - **Interactive 60 FPS Visualizer**: Leiden community clustering and blast radius inspection in `ruas ui`.
 
 ---
 
@@ -42,24 +55,69 @@ Real codebases are messy: mixed Indonesian/English identifiers, acronyms (`pQRIS
 
 ---
 
-## 🚀 Quick Start
+## 📦 Installation & Quick Start
 
+### ⚙️ Prerequisites
+Ruas uses native high-performance SQLite (`node:sqlite`) with WAL mode and FTS5.
+* **Node.js $\ge 22.0.0$** (check via `node -v`)
+
+### ⚡ Method 1: Instant via `npx` (No installation needed)
+Run Ruas directly in any repository without installing:
 ```bash
+# Index your repository
 npx @fk0u/ruas index .
-npx @fk0u/ruas ask "fungsi bayar qris" --roast
+
+# Ask anything in natural language (supports English, Indonesian, or mixed slang)
+npx @fk0u/ruas ask "fungsi validasi pembayaran qris" --roast
+
+# Inspect blast radius before changing code
+npx @fk0u/ruas trace PaymentService . --depth 3
 ```
 
-<details>
-<summary><b>Install globally / from source</b></summary>
+### 🌍 Method 2: Global CLI Installation
+Install globally to get the permanent `ruas` command:
 
 ```bash
-npm install -g @fk0u/ruas        # or: pnpm add -g @fk0u/ruas
+# via npm
+npm install -g @fk0u/ruas
 
-git clone https://github.com/OurCreativity/ruas.git
-cd ruas && pnpm install && pnpm build && pnpm test
+# via pnpm
+pnpm add -g @fk0u/ruas
+
+# via bun
+bun add -g @fk0u/ruas
 ```
-Requires Node ≥ 22 (uses built-in `node:sqlite`).
-</details>
+
+Verify your installation:
+```bash
+ruas --version
+# => 1.4.0
+```
+
+### 💻 Method 3: From Source (Contributors)
+```bash
+git clone https://github.com/OurCreativity/ruas.git
+cd ruas
+pnpm install
+pnpm build
+pnpm test
+```
+
+### 🤖 Method 4: AI Agent / IDE Setup (Model Context Protocol)
+Connect Ruas directly to **Cursor**, **Claude Code**, **Claude Desktop**, **Cline**, or **Windsurf**:
+
+Add to your MCP configuration (e.g. `~/.cursor/mcp.json` or `claude_desktop_config.json`):
+```json
+{
+  "mcpServers": {
+    "ruas": {
+      "command": "npx",
+      "args": ["-y", "@fk0u/ruas", "mcp", "/absolute/path/to/your/project"]
+    }
+  }
+}
+```
+*(Pre-configured JSON snippets for every editor are in [`examples/mcp-configs/`](examples/mcp-configs/README.md)).*
 
 ---
 
