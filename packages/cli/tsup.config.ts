@@ -22,5 +22,20 @@ export default defineConfig({
     "ignore",
     "yaml",
   ],
-  onSuccess: "chmod +x dist/index.js && node -e 'const fs=require(\"fs\"); const f=\"dist/index.js\"; fs.writeFileSync(f, fs.readFileSync(f, \"utf8\").replace(/from \"sqlite\"/g, \"from \\\"node:sqlite\\\"\"));'",
+  async onSuccess() {
+    const fs = await import("node:fs");
+    const path = await import("node:path");
+    const f = path.resolve("dist/index.js");
+    if (fs.existsSync(f)) {
+      const content = fs.readFileSync(f, "utf8");
+      fs.writeFileSync(f, content.replace(/from "sqlite"/g, 'from "node:sqlite"'));
+      if (process.platform !== "win32") {
+        try {
+          fs.chmodSync(f, 0o755);
+        } catch {
+          // ignore chmod errors on unsupported filesystems
+        }
+      }
+    }
+  },
 });
